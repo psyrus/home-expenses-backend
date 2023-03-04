@@ -61,9 +61,14 @@ Goal is to have unit tests.
 - List
 - Get
 
-## Useful Resources:
+## Useful Resources
 
 - <https://api.elephantsql.com/console>
 - <https://www.serverless.com/blog/flask-serverless-api-in-aws-lambda-the-easy-way>
 - <https://www.serverless.com/blog/flask-python-rest-api-serverless-lambda-dynamodb/>
 - <https://www.activestate.com/blog/how-to-create-a-serverless-rest-api-with-python-and-aws-lambda/>
+
+- <https://readme.com/pricing>
+- <https://github.com/thomaxxl/safrs>
+- <https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/>
+- <https://www.digitalocean.com/community/tutorials/how-to-use-a-postgresql-database-in-a-flask-application>

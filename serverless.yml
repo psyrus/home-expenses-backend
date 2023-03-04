@@ -10,11 +10,11 @@ plugins:
  - serverless-python-requirements
 custom:
  wsgi:
-   app: app.app
+   app: src.app.app
    packRequirements: false
 functions:
  app:
    handler: wsgi_handler.handler
    events:
      - http: ANY /
-    #  - http: 'ANY {proxy+}'
+     - http: 'ANY /{proxy+}'
