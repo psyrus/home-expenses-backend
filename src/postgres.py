@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from models.models import *
 from models.base import Base
-
+import random
+import string
 from sqlalchemy import select
 
 engine = create_engine(
@@ -13,15 +14,21 @@ engine = create_engine(
 
 Base.metadata.create_all(engine)
 
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
+
+usernames = [get_random_string(5) for i in range(5)]
 
 with Session(engine) as s:
     # create instances of my user object
-    u = User(username='TRevor')
-    u2 = User(username='kyoka')
+    new_users = [User(username=u) for u in usernames]
 
     # testing
     try:
-        s.add_all([u, u2])
+        s.add_all(new_users)
         s.commit()
     except:
         s.rollback()
