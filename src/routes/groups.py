@@ -8,7 +8,6 @@ from flask import request
 def get_groups():
     return "get all groups"
 
-
 @app.route("/group/<int:id>", methods=["GET"])
 def get_group(id):
     return "get group %s" % id
