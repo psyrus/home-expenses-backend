@@ -1,8 +1,7 @@
 from flask import Flask, jsonify
-
 app = Flask(__name__)
+from .routes import groups, groupmembers, expenses, test # This line needs to exist AFTER the app is initialized
 
-from .routes import groups, groupmembers, expenses
 
 @app.route("/", methods=["GET"])
 def home():

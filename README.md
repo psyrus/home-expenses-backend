@@ -72,3 +72,10 @@ Goal is to have unit tests.
 - <https://github.com/thomaxxl/safrs>
 - <https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/>
 - <https://www.digitalocean.com/community/tutorials/how-to-use-a-postgresql-database-in-a-flask-application>
+
+## Run Guide
+
+1. Needs a python venv enabled
+2. Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)
+3. Run `serverless wsgi serve -p 5600`
+4. Postman/Firefox can access the endpoints
