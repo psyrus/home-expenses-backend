@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 engine = create_engine(
     "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
-
+Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
 def get_random_string(length):

@@ -1,5 +1,6 @@
-from ..app import app
 
+from ..app import app
+from ..utils import get_session
 # Expense
 
 
