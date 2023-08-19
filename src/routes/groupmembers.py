@@ -1,5 +1,5 @@
 from ..app import app
-
+from ..utils import get_session
 # Group members
 
 @app.route("/group/<int:id>/members", methods=["GET"])

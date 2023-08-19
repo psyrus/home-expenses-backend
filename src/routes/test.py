@@ -1,10 +1,10 @@
 from sqlalchemy import (create_engine, select)
 from sqlalchemy.orm import Session
 from flask import request
-import json
 from ..models.models import User
 
 from ..app import app
+from ..utils import get_session
 
 # Test
 
@@ -14,10 +14,6 @@ from ..app import app
 #         dict_[key] = getattr(db_object, key)
 #     return dict_
 
-def get_session() -> Session:
-    engine = create_engine(
-        "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
-    return Session(engine)
 
 @app.route("/test", methods=["GET"])
 def get_test():
@@ -45,6 +41,6 @@ def post_test():
         except Exception as e:
             s.rollback()
             print(e)
-            return "failed"
+            return e.orig.args[0]
 
     return "Success"
