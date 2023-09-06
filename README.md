@@ -79,3 +79,13 @@ Goal is to have unit tests.
 2. Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)
 3. Run `serverless wsgi serve -p 5600`
 4. Postman/Firefox can access the endpoints
+
+## Database testing
+
+<https://www.fusonic.net/en/blog/fusonic-test-with-databases-part-3>
+
+## Flask Login with Google
+
+<https://realpython.com/flask-google-login/>
+
+[Title](https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7)
