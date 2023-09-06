@@ -91,8 +91,10 @@ class User(Base):
     __tablename__ = 'users'
 
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    username = mapped_column(String, unique=True)
+    auth_provider_id = mapped_column(String, unique=True)
+    username = mapped_column(String)
+    email = mapped_column(String, unique=True)
     created_at = mapped_column(DateTime, server_default=func.now())
 
     def __repr__(self) -> str:
-        return f"User(id={self.id!r}, username={self.username!r}, created_at={self.created_at.strftime('%Y-%m-%d %H:%M:%S')})"
+        return f"User(id={self.id!r}, username={self.username!r}, email={self.email!r}, created_at={self.created_at.strftime('%Y-%m-%d %H:%M:%S')})"
