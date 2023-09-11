@@ -76,9 +76,17 @@ Goal is to have unit tests.
 ## Run Guide
 
 1. Needs a python venv enabled
-2. Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)
-3. Run `serverless wsgi serve -p 5600`
-4. Postman/Firefox can access the endpoints
+
+   ```bash
+   python -m venv .venv
+   ```
+
+2. Once the virtual environment is installed, ensure it is activated in your terminal
+3. Once in the activated virtual environment, run `pip install -r requirements.txt`
+4. ~~Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)~~
+5. ~~Run `serverless wsgi serve -p 5600`~~
+6. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should 
+7. Postman/Firefox can access the endpoints
 
 ## Database testing
 
