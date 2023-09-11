@@ -9,3 +9,5 @@ pyOpenSSL
 oauthlib
 requests
 SqlAlchemy
+sqlalchemy-utils
+psycopg[binary]

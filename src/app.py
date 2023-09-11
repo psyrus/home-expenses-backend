@@ -48,9 +48,12 @@ def load_user(user_id):
 @app.route("/reset", methods=["GET"])
 def reset_db():
     from sqlalchemy import (create_engine)
+    from sqlalchemy_utils import database_exists, create_database
     from .models.base import Base
     engine = create_engine(
         "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
+    if not database_exists(engine.url):
+        create_database(engine.url)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
