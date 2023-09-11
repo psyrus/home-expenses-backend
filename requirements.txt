@@ -8,3 +8,4 @@ Flask-Login
 pyOpenSSL
 oauthlib
 requests
+SqlAlchemy
