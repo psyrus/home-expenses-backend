@@ -75,10 +75,37 @@ Goal is to have unit tests.
 
 ## Run Guide
 
+### PostgreSQL Database
+
+You should have a PostgreSQL database available for the backend to interact with. The database is currently hardcoded to a localhost copy running on port 5432 as can be seen in app.py or postgres.py.
+
+Recommended method to set up the database is as follows:
+
+1. Ensure docker desktop is installed and running
+2. Run `docker-compose up --detach`
+
+### Backend Server
+
 1. Needs a python venv enabled
-2. Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)
-3. Run `serverless wsgi serve -p 5600`
-4. Postman/Firefox can access the endpoints
+
+   ```bash
+   python -m venv .venv
+   ```
+
+2. Once the virtual environment is installed, ensure it is activated in your terminal
+3. Once in the activated virtual environment, run `pip install -r requirements.txt`
+4. ~~Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)~~
+5. ~~Run `serverless wsgi serve -p 5600`~~
+6. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should be able to run requests against <http://localhost:5000>
+7. **Ensure that you first visit the following address to initialize the local database** (visiting it again will clear the whole database each time you do): <http://localhost:5000/reset>
+
+### Google login flow (to create users)
+
+1. Follow the guide to get the relevant authentication information for the OAUTH flow: <https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid>
+2. Ensure that the appropriate environment variables are set in your shell for the backend server to pick them up in the app.py code (e.g.: Within your venv activate file, export/set the environment variables):
+   1. GOOGLE_CLIENT_ID
+   2. GOOGLE_CLIENT_SECRET
+3. Once the environment variables have been set, the backend server should be restarted
 
 ## Database testing
 

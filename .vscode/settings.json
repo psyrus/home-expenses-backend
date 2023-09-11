@@ -1,3 +1,4 @@
 {
+    "files.insertFinalNewline": true,
     // "python.analysis.typeCheckingMode": "basic"
 }
