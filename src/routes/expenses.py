@@ -1,4 +1,4 @@
-
+from flask import request, abort
 from ..app import app
 from ..utils import get_session
 # Expense
@@ -27,3 +27,10 @@ def update_expense(expenseId):
 @app.route("/expenses/<int:expenseId>", methods=["DELETE"])
 def remove_expense(expenseId):
     return "remove expense with ID %s" % expenseId
+
+@app.route("/expenses/add", methods=["POST"])
+def add_expense_api_test():
+    request_data = request.get_json()
+    print(request_data)
+    request_data['extra'] = "Trevor's special sauce"
+    return request_data

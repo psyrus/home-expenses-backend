@@ -11,3 +11,4 @@ requests
 SqlAlchemy
 sqlalchemy-utils
 psycopg[binary]
+flask_cors
