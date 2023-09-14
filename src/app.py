@@ -12,7 +12,10 @@ from flask_login import (
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 from flask import Flask, redirect, request, url_for
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
+CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+
 
 from .models.models import User
 from .routes import groups, groupmembers, expenses, test, users
