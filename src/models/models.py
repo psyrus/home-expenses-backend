@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import (Boolean, Column, DateTime, Integer, String, ForeignKey, Numeric, func)
+from sqlalchemy import (Boolean, Column, DateTime, Integer, String, ForeignKey, func)
 from sqlalchemy.orm import relationship, mapped_column
 
 from .base import Base
@@ -15,15 +15,14 @@ class Expense(Base):
 
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     registered_by_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'))
-    expense_date = mapped_column(DateTime)
     created_at = mapped_column(DateTime, server_default=func.now())
     updated_at = mapped_column(DateTime)
-    category = mapped_column(ForeignKey('categories.id'))
 
+    category = mapped_column(ForeignKey('categories.id'))
+    expense_date = mapped_column(DateTime)
     cost = mapped_column(Integer)
-    purchase_date = mapped_column(DateTime)
     description = mapped_column(String)
-    paid_back = mapped_column(Boolean)
+    paid_back = mapped_column(Boolean, default=False)
 
     user = relationship(
         'User', primaryjoin='Expense.registered_by_user == User.id', backref='user_expenses')

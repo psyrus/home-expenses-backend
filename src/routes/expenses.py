@@ -1,7 +1,14 @@
-from flask import request, abort
+from flask import request
 from ..app import app
-from ..utils import get_session
+from ..utils import *
+from ..models.models import Expense
+
 # Expense
+
+
+@app.route("/expenses", methods=["GET"])
+def get_expense_all_api():
+    return get_json_array(get_db_entries(Expense))
 
 
 @app.route("/expenses/<int:expenseId>", methods=["GET"])
@@ -9,18 +16,17 @@ def get_expense(expenseId):
     return "get expenses with ID %s" % expenseId
 
 
-@app.route("/expenses/<int:expenseId>", methods=["PATCH"])
+@app.route("/expense/<int:expenseId>", methods=["PATCH"])
 def update_expense(expenseId):
     return "update expense with ID %s" % expenseId
 
 
-@app.route("/expenses/<int:expenseId>", methods=["DELETE"])
+@app.route("/expense/<int:expenseId>", methods=["DELETE"])
 def remove_expense(expenseId):
     return "remove expense with ID %s" % expenseId
 
-@app.route("/expenses/add", methods=["POST"])
+@app.route("/expense", methods=["POST"])
 def add_expense_api_test():
-    request_data = request.get_json()
-    print(request_data)
-    request_data['extra'] = "Trevor's special sauce"
-    return request_data
+    body = request.get_json()
+    new_expense = Expense(**body)
+    return add_object_to_database(new_expense)

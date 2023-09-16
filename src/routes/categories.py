@@ -2,7 +2,6 @@ from ..app import app
 from ..utils import *
 from flask import request
 from ..models.models import Category
-from ..models.base import Base
 
 
 @app.route("/category", methods=["POST"])

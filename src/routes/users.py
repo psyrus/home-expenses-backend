@@ -2,7 +2,6 @@ from ..app import app
 from ..utils import *
 from flask import request
 from ..models.models import User
-from ..models.base import Base
 import json
 
 def get_user_helper(id:int) -> User:
