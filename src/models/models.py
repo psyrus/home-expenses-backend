@@ -8,7 +8,7 @@ class Category(Base):
     __tablename__ = 'categories'
 
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name = mapped_column(String)
+    name = mapped_column(String, unique=True)
 
 class Expense(Base):
     __tablename__ = 'expenses'
@@ -19,10 +19,6 @@ class Expense(Base):
     created_at = mapped_column(DateTime, server_default=func.now())
     updated_at = mapped_column(DateTime)
     category = mapped_column(ForeignKey('categories.id'))
-    # TODO: category
-    # do we store this just as a string, and deal with validating it elsewhere?
-    # or do we store it as some kind of enum type? https://www.postgresql.org/docs/current/datatype-enum.html
-    # personally think that enum is overcomplicating it, but idk
 
     cost = mapped_column(Integer)
     purchase_date = mapped_column(DateTime)
