@@ -18,7 +18,7 @@ CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['
 
 
 from .models.models import User
-from .routes import groups, groupmembers, expenses, test, users
+from .routes import expenses, users
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -51,13 +51,14 @@ def load_user(user_id):
 @app.route("/reset", methods=["GET"])
 def reset_db():
     from sqlalchemy import (create_engine)
-    from sqlalchemy_utils import database_exists, create_database
+    from sqlalchemy_utils import database_exists, create_database, drop_database
     from .models.base import Base
     engine = create_engine(
         "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
-    if not database_exists(engine.url):
-        create_database(engine.url)
-    Base.metadata.drop_all(engine)
+    if database_exists(engine.url):
+        drop_database(engine.url)
+    create_database(engine.url)
+
     Base.metadata.create_all(engine)
 
     return "ok"
