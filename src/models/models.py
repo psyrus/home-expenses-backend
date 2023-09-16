@@ -31,8 +31,8 @@ class Expense(Base):
 
     user = relationship(
         'User', primaryjoin='Expense.registered_by_user == User.id', backref='user_expenses')
-    category = relationship(
-        'Category', primaryjoin='Expense.category == Category.id', backref='category')
+    category_ref = relationship(
+        'Category', primaryjoin='Expense.category == Category.id')
 
 class User(Base):
     __tablename__ = 'users'

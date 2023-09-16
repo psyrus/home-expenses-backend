@@ -12,13 +12,13 @@ def get_session() -> Session:
     engine = get_engine()
     return Session(engine)
 
-def add_object_to_database(obj: Base) -> Base:
+def add_object_to_database(obj: Base) -> dict | str:
     with get_session() as s:
         try:
             s.add(obj)
             s.commit()
             print("Object added successfully: %s" % repr(obj))
-            return obj
+            return obj.get_dict()
         except Exception as e:
             s.rollback()
             print(e)
