@@ -4,19 +4,9 @@ from ..utils import get_session
 # Expense
 
 
-@app.route("/expenses/group/<int:id>", methods=["GET"])
-def get_group_expenses_list(id):
-    return "get expenses for group %s" % id
-
-
 @app.route("/expenses/<int:expenseId>", methods=["GET"])
 def get_expense(expenseId):
     return "get expenses with ID %s" % expenseId
-
-
-@app.route("/expenses/group/<int:id>/add", methods=["POST"])
-def add_expense(id):
-    return "add new expense for group %s" % id
 
 
 @app.route("/expenses/<int:expenseId>", methods=["PATCH"])

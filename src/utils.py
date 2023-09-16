@@ -46,7 +46,7 @@ def get_db_entries(class_type: Base) -> list[Base]:
             
         return db_entries
     
-def get_json_array(db_object_list):
+def get_json_array(db_object_list: list[Base]) -> dict:
     output = [i.get_dict() for i in db_object_list]
     return json.loads(json.dumps(output, default = str))
 
@@ -61,7 +61,7 @@ def delete_object_from_database(obj):
             print(e)
             return e.orig.args[0]
         
-def update_object_properties(obj, patch):
+def update_object_properties(obj: Base, patch: dict):
     obj_dict = obj.get_dict()
     for key in obj_dict.keys():
         if key not in patch:

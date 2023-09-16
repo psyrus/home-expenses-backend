@@ -1,7 +1,7 @@
 from ..app import app
 from ..utils import *
 from flask import request
-from ..models.models import User,Group
+from ..models.models import User
 from ..models.base import Base
 import json
 
@@ -53,13 +53,3 @@ def update_user_api(id):
     s.commit()
     s.close()
     return "update user %s" % id
-
-
-@app.route("/user/<int:id>/groups", methods=["GET"])
-def get_user_groups_api(id):
-    with get_session() as s:
-        try:
-            groups = s.scalars(select(Group).where(Group.created_by == id)).all()
-        except:
-            return None
-    return get_json_array(groups)
