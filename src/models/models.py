@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import (Column, DateTime, Integer, String, ForeignKey, func)
+from sqlalchemy import (Boolean, Column, DateTime, Integer, String, ForeignKey, Numeric, func)
 from sqlalchemy.orm import relationship, mapped_column
 
 from .base import Base
@@ -13,6 +13,15 @@ class Expense(Base):
     expense_date = mapped_column(DateTime)
     created_at = mapped_column(DateTime, server_default=func.now())
     updated_at = mapped_column(DateTime)
+    # TODO: category
+    # do we store this just as a string, and deal with validating it elsewhere?
+    # or do we store it as some kind of enum type? https://www.postgresql.org/docs/current/datatype-enum.html
+    # personally think that enum is overcomplicating it, but idk
+
+    cost = mapped_column(Integer)
+    purchase_date = mapped_column(DateTime)
+    description = mapped_column(String)
+    paid_back = mapped_column(Boolean)
 
     user = relationship(
         'User', primaryjoin='Expense.registered_by_user == User.id', backref='user_expenses')
