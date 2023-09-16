@@ -2,7 +2,6 @@ from ..app import app
 from ..utils import *
 from flask import request
 from ..models.models import User
-from ..models.base import Base
 import json
 
 def get_user_helper(id:int) -> User:
@@ -33,8 +32,9 @@ def get_user_api(id):
 
 @app.route("/user", methods=["POST"])
 def new_user_api():
-    username = request.get_json()['username']
-    return add_object_to_database(User(username=username))
+    body = request.get_json()
+    new_user = User(**body)
+    return add_object_to_database(new_user)
 
 
 @app.route("/user/<int:id>", methods=["DELETE"])
