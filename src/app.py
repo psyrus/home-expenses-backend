@@ -18,7 +18,7 @@ CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['
 
 
 from .models.models import User
-from .routes import expenses, users
+from .routes import expenses, users, categories
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
