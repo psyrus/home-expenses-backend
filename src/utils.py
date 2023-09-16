@@ -50,12 +50,14 @@ def get_json_array(db_object_list: list[Base]) -> dict:
     output = [i.get_dict() for i in db_object_list]
     return json.loads(json.dumps(output, default = str))
 
-def delete_object_from_database(obj):
+def delete_object_from_database(obj: Base) -> dict | str:
+    if obj == None:
+        return "Entity in database did not exist"
     with get_session() as s:
         try:
             s.delete(obj)
             s.commit()
-            return "Object deleted successfully: %s" % repr(obj)
+            return "Object deleted successfully: %s" % json.dumps(obj.get_dict())
         except Exception as e:
             s.rollback()
             print(e)

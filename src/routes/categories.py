@@ -14,7 +14,7 @@ def new_category_api():
 def get_categories_api():
     return get_json_array(get_db_entries(Category))
 
-# @app.route("/category/<int:id>", methods=["DELETE"])
-# def delete_category_api(id):
-#     category =_category_helper(id)
-#     return delete_object_from_database(category)
+@app.route("/category/<int:id>", methods=["DELETE"])
+def delete_category_api(id):
+    category =get_db_entry_by_id(Category ,id)
+    return delete_object_from_database(category)
