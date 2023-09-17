@@ -1,16 +1,32 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import (create_engine, engine)
+import sqlalchemy
 from sqlalchemy import select
 import json
 from .models.models import Base
+from sqlalchemy import (create_engine)
+from sqlalchemy_utils import database_exists, create_database, drop_database
+from .models.base import Base
 
-def get_engine() -> engine:
-    return create_engine(
-        "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
+def get_engine(engine_endpoint: str = "postgresql+psycopg://postgres:postgres@localhost:5432/backend") -> sqlalchemy.Engine:
+    return create_engine(engine_endpoint)
 
-def get_session() -> Session:
-    engine = get_engine()
+def get_session(engine_endpoint: str = "", engine: sqlalchemy.Engine = None) -> Session:
+    if not engine:
+        engine = get_engine(engine_endpoint)
     return Session(engine)
+
+def reset_db(engine: sqlalchemy.Engine) -> None:
+    if database_exists(engine.url):
+        drop_database(engine.url)
+    create_database(engine.url)
+    Base.metadata.create_all(engine)
+
+def get_test_engine_endpoint(suffix: int) -> str:
+    return "postgresql+psycopg://postgres:postgres@localhost:5432/backend%s" % suffix
+
+def remove_test_database(engine_url: str) -> None:
+    drop_database(engine_url)
 
 def add_object_to_database(obj: Base) -> dict | str:
     with get_session() as s:
@@ -63,12 +79,10 @@ def delete_object_from_database(obj: Base) -> dict | str:
             print(e)
             return e.orig.args[0]
         
-def update_object_properties(obj: Base, patch: dict):
+def update_object_properties(obj: Base, patch: dict) -> Base:
     obj_dict = obj.get_dict()
     for key in obj_dict.keys():
         if key not in patch:
             continue
         setattr(obj, key, patch[key])
-    print(obj_dict)
-    print(obj)
-    # return obj
+    return obj

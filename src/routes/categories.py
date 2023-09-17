@@ -16,5 +16,5 @@ def get_categories_api():
 
 @app.route("/category/<int:id>", methods=["DELETE"])
 def delete_category_api(id):
-    category =get_db_entry_by_id(Category ,id)
+    category = get_db_entry_by_id(Category ,id)
     return delete_object_from_database(category)
