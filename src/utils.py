@@ -70,5 +70,4 @@ def update_object_properties(obj: Base, patch: dict):
             continue
         setattr(obj, key, patch[key])
     print(obj_dict)
-    print(obj)
-    # return obj
+    print(obj.get_dict())

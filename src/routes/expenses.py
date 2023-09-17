@@ -17,10 +17,9 @@ def get_expense_all_api():
     return get_json_array(get_db_entries(Expense))
 
 
-@app.route("/expenses/<int:expenseId>", methods=["GET"])
+@app.route("/expense/<int:expenseId>", methods=["GET"])
 def get_expense_api(expenseId):
-    category =get_db_entry_by_id(Expense ,id)
-    return delete_object_from_database(category)
+    return get_db_entry_by_id(Expense, expenseId).get_dict()
 
 
 @app.route("/expense/<int:expenseId>", methods=["PATCH"])
@@ -29,10 +28,11 @@ def update_expense_api(expenseId):
     s = get_session()
     s.begin()
     expense = s.scalars(select(Expense).where(Expense.id == expenseId)).one()
-    updated_expense = update_object_properties(expense, req)
+    update_object_properties(expense, req)
     s.commit()
+    output = expense.get_dict()
     s.close()
-    return updated_expense.get_dict()
+    return output
 
 
 @app.route("/expense/<int:expenseId>", methods=["DELETE"])
