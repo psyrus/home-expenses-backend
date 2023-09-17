@@ -5,6 +5,12 @@ from ..models.models import Expense
 
 # Expense
 
+@app.route("/expense", methods=["POST"])
+def add_expense_api():
+    body = request.get_json()
+    new_expense = Expense(**body)
+    return add_object_to_database(new_expense)
+
 
 @app.route("/expenses", methods=["GET"])
 def get_expense_all_api():
@@ -12,21 +18,24 @@ def get_expense_all_api():
 
 
 @app.route("/expenses/<int:expenseId>", methods=["GET"])
-def get_expense(expenseId):
-    return "get expenses with ID %s" % expenseId
+def get_expense_api(expenseId):
+    category =get_db_entry_by_id(Expense ,id)
+    return delete_object_from_database(category)
 
 
 @app.route("/expense/<int:expenseId>", methods=["PATCH"])
-def update_expense(expenseId):
-    return "update expense with ID %s" % expenseId
+def update_expense_api(expenseId):
+    req = request.get_json()
+    s = get_session()
+    s.begin()
+    expense = s.scalars(select(Expense).where(Expense.id == expenseId)).one()
+    updated_expense = update_object_properties(expense, req)
+    s.commit()
+    s.close()
+    return updated_expense.get_dict()
 
 
 @app.route("/expense/<int:expenseId>", methods=["DELETE"])
-def remove_expense(expenseId):
-    return "remove expense with ID %s" % expenseId
-
-@app.route("/expense", methods=["POST"])
-def add_expense_api_test():
-    body = request.get_json()
-    new_expense = Expense(**body)
-    return add_object_to_database(new_expense)
+def remove_expense_api(expenseId):
+    expense =  get_db_entry_by_id(Expense ,expenseId)
+    return delete_object_from_database(expense)
