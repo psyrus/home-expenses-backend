@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import (create_engine, engine)
 from sqlalchemy import select
 import json
-from .models.models import Base
+from ..models.models import Base
 
 def get_engine() -> engine:
     return create_engine(
