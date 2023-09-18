@@ -1,6 +1,6 @@
 from flask import request
 from ..app import app
-from ..utils import *
+from ..utils.api_helpers import *
 from ..models.models import Expense
 
 # Expense
