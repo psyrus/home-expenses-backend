@@ -2,7 +2,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import (create_engine, engine)
 from sqlalchemy import select
 import json
+import logging
 from ..models.models import Base
+
+# log = logging.getLogger(__name__)
 
 def get_engine() -> engine:
     return create_engine(
@@ -17,11 +20,11 @@ def add_object_to_database(obj: Base) -> dict | str:
         try:
             s.add(obj)
             s.commit()
-            print("Object added successfully: %s" % obj.get_dict())
+            logging.debug("Object added successfully: %s" % obj.get_dict())
             return obj.get_dict()
         except Exception as e:
             s.rollback()
-            print(e)
+            logging.error(e)
             return e.orig.args[0]
 
 def get_db_entry_by_id(class_type: Base, id: int) -> Base:
@@ -30,8 +33,8 @@ def get_db_entry_by_id(class_type: Base, id: int) -> Base:
     with get_session() as s:
         try:
             db_entry = s.scalars(db_select).one()
-            print(db_entry)
-            print(db_entry.get_dict())
+            logging.debug(db_entry)
+            logging.debug(db_entry.get_dict())
         except:
             return None
             
@@ -42,7 +45,7 @@ def get_db_entries(class_type: Base) -> list[Base]:
     
     with get_session() as s:
         db_entries = s.scalars(db_select).all()
-        print(get_json_array(db_entries))
+        logging.debug(get_json_array(db_entries))
             
         return db_entries
     
@@ -60,7 +63,7 @@ def delete_object_from_database(obj: Base) -> dict | str:
             return "Object deleted successfully: %s" % json.dumps(obj.get_dict())
         except Exception as e:
             s.rollback()
-            print(e)
+            logging.error(e)
             return e.orig.args[0]
         
 def update_object_properties(obj: Base, patch: dict):
@@ -69,5 +72,5 @@ def update_object_properties(obj: Base, patch: dict):
         if key not in patch:
             continue
         setattr(obj, key, patch[key])
-    print(obj_dict)
-    print(obj.get_dict())
+    logging.debug(obj_dict)
+    logging.debug(obj.get_dict())

@@ -2,6 +2,7 @@
 # This line needs to exist AFTER the app is initialized
 import os
 import json
+import logging
 from flask_login import (
     LoginManager,
     current_user,
@@ -40,6 +41,10 @@ login_manager.init_app(app)
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
+# Configure the logging settings DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
+# IDK where to put this
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO) # You can adjust the log level as needed
+
 # Flask-Login helper to retrieve a user from our db
 
 
@@ -61,7 +66,9 @@ def reset_db():
     create_database(engine.url)
 
     Base.metadata.create_all(engine)
+    logging.info("Populating database...")
     add_test_entries()
+    logging.info("Done")
     return "ok"
 
 
