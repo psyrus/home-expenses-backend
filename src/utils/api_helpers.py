@@ -17,7 +17,7 @@ def add_object_to_database(obj: Base) -> dict | str:
         try:
             s.add(obj)
             s.commit()
-            print("Object added successfully: %s" % repr(obj))
+            print("Object added successfully: %s" % obj.get_dict())
             return obj.get_dict()
         except Exception as e:
             s.rollback()
