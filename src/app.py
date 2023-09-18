@@ -53,7 +53,7 @@ def reset_db():
     from sqlalchemy import (create_engine)
     from sqlalchemy_utils import database_exists, create_database, drop_database
     from .models.base import Base
-    from .utils.instantiate_database import instantiate
+    from .utils.instantiate_database import add_test_entries
     engine = create_engine(
         "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
     if database_exists(engine.url):
@@ -61,7 +61,7 @@ def reset_db():
     create_database(engine.url)
 
     Base.metadata.create_all(engine)
-    instantiate()
+    add_test_entries()
     return "ok"
 
 

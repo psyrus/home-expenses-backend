@@ -60,10 +60,10 @@ def create_categories():
     return get_db_entries(Category)
     print("Done")
 
-def instantiate():
+def add_test_entries():
     users = create_users(4)
     categories = create_categories()
     expenses = create_expenses(100, len(users), len(categories))
 
 if __name__ == "__main__":
-    instantiate()
+    add_test_entries()
