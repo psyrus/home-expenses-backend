@@ -3,10 +3,14 @@ from sqlalchemy import (create_engine, engine)
 from sqlalchemy import select
 import json
 from ..models.models import Base
+import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
 
 def get_engine() -> engine:
     return create_engine(
-        "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
+        os.environ.get("DB_ADDRESS"))
 
 def get_session() -> Session:
     engine = get_engine()

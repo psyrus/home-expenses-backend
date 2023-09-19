@@ -96,13 +96,15 @@ Recommended method to set up the database is as follows:
 3. Once in the activated virtual environment, run `pip install -r requirements.txt`
 4. ~~Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)~~
 5. ~~Run `serverless wsgi serve -p 5600`~~
-6. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should be able to run requests against <http://localhost:5000>
-7. **Ensure that you first visit the following address to initialize the local database** (visiting it again will clear the whole database each time you do): <http://localhost:5000/reset>
+6. Ensure that the appropriate environment variables are set for the database address
+   1. `DB_ADDRESS=postgresql+psycopg://postgres:postgres@localhost:5432/backend`
+7. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should be able to run requests against <http://localhost:5000>
+8. **Ensure that you first visit the following address to initialize the local database** (visiting it again will clear the whole database each time you do): <http://localhost:5000/reset>
 
 ### Google login flow (to create users)
 
 1. Follow the guide to get the relevant authentication information for the OAUTH flow: <https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid>
-2. Ensure that the appropriate environment variables are set in your shell for the backend server to pick them up in the app.py code (e.g.: Within your venv activate file, export/set the environment variables):
+2. Ensure that the appropriate environment variables are set in your shell for the backend server to pick them up in the app.py code by adding them to the file at `src/.env`:
    1. GOOGLE_CLIENT_ID
    2. GOOGLE_CLIENT_SECRET
 3. Once the environment variables have been set, the backend server should be restarted
