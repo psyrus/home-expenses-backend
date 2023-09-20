@@ -40,3 +40,12 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, username={self.username!r}, email={self.email!r}, created_at={self.created_at.strftime('%Y-%m-%d %H:%M:%S')})"
+
+class AccessToken(Base):
+    __tablename__ = 'accesstokens'
+
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    registered_to_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'))
+    created_at = mapped_column(DateTime, server_default=func.now())
+    expires = mapped_column(DateTime)
+    token_value = mapped_column(String)

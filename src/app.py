@@ -13,9 +13,10 @@ app.config['Access-Control-Allow-Origin'] = '*'
 app.config["Access-Control-Allow-Headers"]="Content-Type"
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-from .models.models import User
+from .models.models import User, AccessToken
 from .routes import expenses, users, categories
-
+from .utils.api_helpers import add_object_to_database
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Third-party libraries
@@ -25,7 +26,7 @@ load_dotenv(".env")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
-app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
+app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -37,13 +38,14 @@ def login_required(function):
         if encoded_jwt==None:
             return abort(401)
         else:
+
             return function()
     return wrapper
 
 
 def Generate_JWT(payload):
     import jwt
-    encoded_jwt = jwt.encode(payload, app.secret_key)
+    encoded_jwt = jwt.encode(payload, app.secret_key, algorithm="HS256")
     return encoded_jwt
 
 @login_required
@@ -51,11 +53,12 @@ def Generate_JWT(payload):
 def test_token():
     import jwt
     from flask import Response
-    encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
     try:
-        decoded_jwt=jwt.decode(encoded_jwt, app.secret_key)
+        encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
+        decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"])
         print(decoded_jwt)
-    except Exception as e: 
+        return decoded_jwt
+    except Exception as e:
         return Response(
             response=json.dumps({"message":"Decoding JWT Failed", "exception":e.args}),
             status=500,
@@ -135,31 +138,39 @@ def callback():
     # including their Google profile image and email
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
-    userinfo_response = requests.get(uri, headers=headers, data=body)
+    userinfo_response = dict(requests.get(uri, headers=headers, data=body).json())
 
     # You want to make sure their email is verified.
     # The user authenticated with Google, authorized your
     # app, and now you've verified their email through Google!
-    if userinfo_response.json().get("email_verified"):
-        # unique_id = userinfo_response.json()["sub"]
-        # users_email = userinfo_response.json()["email"]
-        # picture = userinfo_response.json()["picture"]
-        # users_name = userinfo_response.json()["given_name"]
+    if userinfo_response.get("email_verified"):
+        # unique_id = userinfo_response["sub"]
+        # users_email = userinfo_response["email"]
+        # picture = userinfo_response["picture"]
+        # users_name = userinfo_response["given_name"]
 
-        user = users.get_user_helper_authid(oid=userinfo_response.json()["sub"])
+        user = users.get_user_helper_authid(oid=userinfo_response["sub"])
         if not user:
-            users.add_object_to_database(
+            add_object_to_database(
                 User(
-                    auth_provider_id=userinfo_response.json()["sub"],
-                    email=userinfo_response.json()["email"],
-                    username=userinfo_response.json()["given_name"],
+                    auth_provider_id=userinfo_response["sub"],
+                    email=userinfo_response["email"],
+                    username=userinfo_response["given_name"],
                 )
             )
-            user = users.get_user_helper_authid(oid=userinfo_response.json()["sub"])
+            user = users.get_user_helper_authid(oid=userinfo_response["sub"])
         
-        jwt_token=Generate_JWT(userinfo_response.json())
-        print(jwt_token)
-        return user.get_dict()
+        token_content = userinfo_response.copy()
+        token_expiry = datetime.now() + timedelta(days=1)
+        token_content["expires"] = str(token_expiry)
+        jwt_token=Generate_JWT(token_content)
+        saved_token = add_object_to_database(AccessToken(
+            registered_to_user = user.id,
+            expires = token_expiry,
+            token_value = jwt_token
+        ))
+
+        return saved_token
     else:
         return "User email not available or not verified by Google.", 400
 

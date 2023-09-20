@@ -9,9 +9,8 @@ def get_random_string(len: int) -> str:
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(len))
 
-def user(id:int=random.randint(10, 1000)) -> dict:
+def user() -> dict:
     return {
-        "id": id,
         "auth_provider_id": get_random_string(15),
         "username": (name:=get_random_string(5)).capitalize(),
         "email": f"{name}@email.com",
@@ -35,7 +34,7 @@ def create_users(count: int):
     print(f"Creating user: ", end='', flush=True)
     for i in range(count):
         print(f"{i} | ", end='', flush=True)
-        params = user(i)
+        params = user()
         add_object_to_database(User(**params))
     return get_db_entries(User)
     print("Done")
