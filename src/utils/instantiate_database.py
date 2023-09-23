@@ -2,8 +2,8 @@ import string
 import random
 from datetime import datetime
 from ..models.models import *
-from .api_helpers import add_object_to_database, get_db_entries
-
+# from .api_helpers import add_object_to_database, get_db_entries
+from ..utils import db
 
 def get_random_string(len: int) -> str:
     letters = string.ascii_lowercase
@@ -33,22 +33,22 @@ def expense(id:int, user:int=1, category:int=1) -> dict:
 
 def create_users(count: int):
     for i in range(count):
-        params = user(i)
-        add_object_to_database(User(**params))
-    return get_db_entries(User)
+        params = user(i+1)
+        db.add_object(User(**params))
+    return db.get_entries(User)
 
 def create_expenses(count: int, user_count: int, category_count: int):
     for i in range(count):
-        params = expense(i, random.randint(0, user_count - 1), random.randint(0, user_count - 1))
-        add_object_to_database(Expense(**params))
-    return get_db_entries(Expense)
+        params = expense(i+1, random.randint(1, user_count - 1), random.randint(1, user_count - 1))
+        db.add_object(Expense(**params))
+    return db.get_entries(Expense)
 
 def create_categories():
     categories = ["Kid", "Health", "Home", "Other"]
     for i in range(len(categories)):
-        params = {"id": i, "name": categories[i]}
-        add_object_to_database(Category(**params))
-    return get_db_entries(Category)
+        params = {"id": i+1, "name": categories[i]}
+        db.add_object(Category(**params))
+    return db.get_entries(Category)
 
 def add_test_entries():
     users = create_users(4)

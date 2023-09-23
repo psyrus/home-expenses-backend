@@ -2,7 +2,6 @@
 # This line needs to exist AFTER the app is initialized
 import os
 import json
-import logging
 from flask_login import (
     LoginManager,
     current_user,
@@ -14,9 +13,14 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 from flask import Flask, redirect, request, url_for
 from flask_cors import CORS, cross_origin
+# from src.utils import api_helpers
 app = Flask(__name__)
 CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
+# Configure the logging settings DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
+# Note: logging config must happen before any calls to logging.info() etc.
+import logging
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 from .models.models import User
 from .routes import expenses, users, categories
@@ -41,13 +45,7 @@ login_manager.init_app(app)
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
-# Configure the logging settings DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
-# IDK where to put this
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO) # You can adjust the log level as needed
-
 # Flask-Login helper to retrieve a user from our db
-
-
 @login_manager.user_loader
 def load_user(user_id):
     return users.get_user_helper(user_id)
@@ -55,17 +53,15 @@ def load_user(user_id):
 
 @app.route("/reset", methods=["GET"])
 def reset_db():
-    from sqlalchemy import (create_engine)
-    from sqlalchemy_utils import database_exists, create_database, drop_database
     from .models.base import Base
+    # from .utils.instantiate_database import add_test_entries
+    # from .utils.api_helpers import get_engine, db_engine
+    from .utils import db
+    # from .utils.db import get_engine
     from .utils.instantiate_database import add_test_entries
-    engine = create_engine(
-        "postgresql+psycopg://postgres:postgres@localhost:5432/backend")
-    if database_exists(engine.url):
-        drop_database(engine.url)
-    create_database(engine.url)
-
-    Base.metadata.create_all(engine)
+    engine = db.get_engine()
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     logging.info("Populating database...")
     add_test_entries()
     logging.info("Done")
