@@ -2,9 +2,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import (create_engine, engine)
 from sqlalchemy import select
 import json
-from ..models.models import Base
+from ..models.models import Base, User, AccessToken
 import os
 from dotenv import load_dotenv
+import jwt
+from datetime import datetime
 
 load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
 
@@ -27,6 +29,23 @@ def add_object_to_database(obj: Base) -> dict | str:
             s.rollback()
             print(e)
             return e.orig.args[0]
+
+def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
+    if not jwt_token:
+        return False
+
+    is_valid = False
+    decoded_jwt=jwt.decode(jwt_token, secret_key, algorithms=["HS256"], verify=True)
+    # expiry = datetime.datetime.strptime(decoded_jwt.expires, "%Y-%m-%d %H:%M:%S.%f")
+    with get_session() as s:
+        try:
+            user_ref = s.scalars(select(User).where(User.auth_provider_id == decoded_jwt['sub'])).one()
+            jwt_ref = s.scalars(select(AccessToken).where(AccessToken.registered_to_user == user_ref.id).where(AccessToken.token_value == jwt_token)).one()
+            if jwt_ref.expires >= datetime.now():
+                is_valid = True
+        except Exception as e:
+            pass
+    return is_valid
 
 def get_db_entry_by_id(class_type: Base, id: int) -> Base:
     db_select = select(class_type).where(class_type.id == id)

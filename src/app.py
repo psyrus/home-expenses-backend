@@ -15,7 +15,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
 from .routes import expenses, users, categories
-from .utils.api_helpers import add_object_to_database
+from .utils.api_helpers import add_object_to_database, is_jwt_valid
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -33,12 +33,15 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 # wrapper
 def login_required(function):
+    print("does this work at all?")
     def wrapper(*args, **kwargs):
+        print("wrapper called")
         encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-        if encoded_jwt==None:
+        print(encoded_jwt)
+        if not is_jwt_valid(encoded_jwt, app.secret_key):
             return abort(401)
         else:
-
+            print("It is working!")
             return function()
     return wrapper
 
@@ -48,14 +51,14 @@ def Generate_JWT(payload):
     encoded_jwt = jwt.encode(payload, app.secret_key, algorithm="HS256")
     return encoded_jwt
 
-@login_required
 @app.route("/test-token", methods=["GET"])
+@login_required
 def test_token():
     import jwt
     from flask import Response
     try:
         encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-        decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"])
+        decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
         print(decoded_jwt)
         return decoded_jwt
     except Exception as e:
