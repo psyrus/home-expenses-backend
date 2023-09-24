@@ -1,10 +1,7 @@
 from flask import request
 from ..app import app
-# from ..utils.api_helpers import *
 from ..models.models import Expense
 from ..utils import db
-
-# Expense
 
 @app.route("/expense", methods=["POST"])
 def add_expense_api():

@@ -54,10 +54,7 @@ def load_user(user_id):
 @app.route("/reset", methods=["GET"])
 def reset_db():
     from .models.base import Base
-    # from .utils.instantiate_database import add_test_entries
-    # from .utils.api_helpers import get_engine, db_engine
     from .utils import db
-    # from .utils.db import get_engine
     from .utils.instantiate_database import add_test_entries
     engine = db.get_engine()
     Base.metadata.drop_all(bind=engine)

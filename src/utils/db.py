@@ -4,7 +4,6 @@ from sqlalchemy import select
 import json
 import logging
 from ..models.models import Base
-
 from ..databases.database_interface import DatabaseSingleton
 
 # log = logging.getLogger(__name__)

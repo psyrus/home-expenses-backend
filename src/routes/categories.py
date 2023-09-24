@@ -1,5 +1,4 @@
 from ..app import app
-# from ..utils.api_helpers import *
 from flask import request
 from ..models.models import Category
 from ..utils import db

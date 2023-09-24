@@ -1,5 +1,4 @@
 from ..app import app
-# from ..utils.api_helpers import *
 from sqlalchemy import select
 from flask import request
 from ..models.models import User
@@ -20,7 +19,6 @@ def get_user_helper_authid(oid):
         except:
             return None
 
-# User
 @app.route("/users", methods=["GET"])
 def get_users_api():
     return db.get_json_array(db.get_entries(User))
