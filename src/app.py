@@ -15,7 +15,6 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
 from .routes import expenses, users, categories
-from .utils import db
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -28,6 +27,7 @@ LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
 app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
 logging.basicConfig(format='%(levelname)s: %(message)s', level=LOGGING_LEVEL)
 
+from .utils import db
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)

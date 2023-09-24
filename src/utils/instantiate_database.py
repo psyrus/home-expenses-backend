@@ -36,7 +36,7 @@ def create_users(count: int):
 
 def create_expenses(count: int, user_count: int, category_count: int):
     for i in range(count):
-        params = expense(random.randint(0, user_count - 1), random.randint(0, category_count - 1))
+        params = expense(random.randint(1, user_count), random.randint(1, category_count))
         db.add_object(Expense(**params))
     return db.get_entries(Expense)
 
