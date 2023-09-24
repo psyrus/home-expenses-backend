@@ -38,8 +38,11 @@ def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
         return False
 
     is_valid = False
-    decoded_jwt=jwt.decode(jwt_token, secret_key, algorithms=["HS256"], verify=True)
-    # expiry = datetime.datetime.strptime(decoded_jwt.expires, "%Y-%m-%d %H:%M:%S.%f")
+    try:
+        decoded_jwt=jwt.decode(jwt_token, secret_key, algorithms=["HS256"], verify=True)
+    except:
+        return False
+
     with get_session() as s:
         try:
             user_ref = s.scalars(select(User).where(User.auth_provider_id == decoded_jwt['sub'])).one()
