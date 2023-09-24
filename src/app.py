@@ -2,9 +2,9 @@
 # This line needs to exist AFTER the app is initialized
 import os
 import json
-
 from oauthlib.oauth2 import WebApplicationClient
 import requests
+import logging
 from flask import Flask, redirect, request, abort
 from flask_cors import CORS
 app = Flask(__name__)
@@ -19,14 +19,15 @@ from .utils.api_helpers import add_object_to_database, is_jwt_valid
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# Third-party libraries
-
 # Configuration
 load_dotenv(".env")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
+LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
 app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=LOGGING_LEVEL)
+
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -39,6 +40,8 @@ def login_required(function):
         else:
             return function()
     return wrapper
+
+# Flask-Login helper to retrieve a user from our db
 
 def Generate_JWT(payload):
     import jwt
@@ -75,7 +78,9 @@ def reset_db():
     create_database(engine.url)
 
     Base.metadata.create_all(engine)
+    logging.info("Populating database...")
     add_test_entries()
+    logging.info("Done")
     return "ok"
 
 

@@ -7,8 +7,11 @@ import os
 from dotenv import load_dotenv
 import jwt
 from datetime import datetime
+import logging
 
 load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
+
+# log = logging.getLogger(__name__)
 
 def get_engine() -> engine:
     return create_engine(
@@ -23,11 +26,11 @@ def add_object_to_database(obj: Base) -> dict | str:
         try:
             s.add(obj)
             s.commit()
-            print("Object added successfully: %s" % obj.get_dict())
+            logging.debug("Object added successfully: %s" % obj.get_dict())
             return obj.get_dict()
         except Exception as e:
             s.rollback()
-            print(e)
+            logging.error(e)
             return e.orig.args[0]
 
 def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
@@ -55,8 +58,8 @@ def get_db_entry_by_id(class_type: Base, id: int) -> Base:
     with get_session() as s:
         try:
             db_entry = s.scalars(db_select).one()
-            print(db_entry)
-            print(db_entry.get_dict())
+            logging.debug(db_entry)
+            logging.debug(db_entry.get_dict())
         except:
             return None
             
@@ -67,7 +70,7 @@ def get_db_entries(class_type: Base) -> list[Base]:
     
     with get_session() as s:
         db_entries = s.scalars(db_select).all()
-        print(get_json_array(db_entries))
+        logging.debug(get_json_array(db_entries))
             
         return db_entries
 
@@ -88,7 +91,7 @@ def delete_object_from_database(obj: Base, session: Session = None) -> dict | st
             return "Object deleted successfully: %s" % obj.get_dict()
         except Exception as e:
             s.rollback()
-            print(e)
+            logging.error(e)
             return e.orig.args[0]
         
 def update_object_properties(obj: Base, patch: dict) -> None:
@@ -97,5 +100,5 @@ def update_object_properties(obj: Base, patch: dict) -> None:
         if key not in patch:
             continue
         setattr(obj, key, patch[key])
-    print(obj_dict)
-    print(obj.get_dict())
+    logging.debug(obj_dict)
+    logging.debug(obj.get_dict())
