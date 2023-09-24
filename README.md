@@ -94,19 +94,28 @@ Recommended method to set up the database is as follows:
 
 2. Once the virtual environment is installed, ensure it is activated in your terminal
 3. Once in the activated virtual environment, run `pip install -r requirements.txt`
-4. ~~Ensure that `serverless` is installed (<https://www.serverless.com/plugins/serverless-wsgi>)~~
-5. ~~Run `serverless wsgi serve -p 5600`~~
-6. Ensure that the appropriate environment variables are set for the database address
-   1. `DB_ADDRESS=postgresql+psycopg://postgres:postgres@localhost:5432/backend`
-7. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should be able to run requests against <http://localhost:5000>
-8. **Ensure that you first visit the following address to initialize the local database** (visiting it again will clear the whole database each time you do): <http://localhost:5000/reset>
+4. Set up the following items in a `.env` file located at `src/.env`:
+
+   ```ini
+    APP_SECRET_KEY='GUID or other secret value used for hashing JWTs'
+    DB_ADDRESS='postgresql+psycopg://postgres:postgres@localhost:5432/backend'
+    LOGGING_LEVEL='DEBUG'
+   ```
+
+5. Simply running the debug through the UI of VSCode (or using F5 to run the debugger) will start the server and should be able to run requests against <http://localhost:5000>
+6. **Ensure that you first visit the following address to initialize the local database** (visiting it again will clear the whole database each time you do): <http://localhost:5000/reset>
 
 ### Google login flow (to create users)
 
 1. Follow the guide to get the relevant authentication information for the OAUTH flow: <https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid>
 2. Ensure that the appropriate environment variables are set in your shell for the backend server to pick them up in the app.py code by adding them to the file at `src/.env`:
-   1. GOOGLE_CLIENT_ID
-   2. GOOGLE_CLIENT_SECRET
+
+   ```ini
+     GOOGLE_DISCOVERY_URL='https://accounts.google.com/.well-known/openid-configuration'
+     GOOGLE_CLIENT_ID='YOUR GOOGLE OAUTH CLIENT ID'
+     GOOGLE_CLIENT_SECRET='YOUR GOOGLE OAUTH SECRET'
+   ```
+
 3. Once the environment variables have been set, the backend server should be restarted
 
 ## Database testing
