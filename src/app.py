@@ -15,7 +15,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
 from .routes import expenses, users, categories
-from .utils.api_helpers import add_object_to_database, is_jwt_valid
+from .utils import db
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -35,13 +35,11 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 def login_required(function):
     def wrapper(*args, **kwargs):
         encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-        if not is_jwt_valid(encoded_jwt, app.secret_key):
+        if not db.is_jwt_valid(encoded_jwt, app.secret_key):
             return abort(401)
         else:
             return function()
     return wrapper
-
-# Flask-Login helper to retrieve a user from our db
 
 def Generate_JWT(payload):
     import jwt
@@ -67,17 +65,12 @@ def test_token():
 
 @app.route("/reset", methods=["GET"])
 def reset_db():
-    from sqlalchemy import (create_engine)
-    from sqlalchemy_utils import database_exists, create_database, drop_database
     from .models.base import Base
+    from .utils import db
     from .utils.instantiate_database import add_test_entries
-    from .utils.api_helpers import get_engine
-    engine = get_engine()
-    if database_exists(engine.url):
-        drop_database(engine.url)
-    create_database(engine.url)
-
-    Base.metadata.create_all(engine)
+    engine = db.get_engine()
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     logging.info("Populating database...")
     add_test_entries()
     logging.info("Done")
@@ -154,7 +147,7 @@ def callback():
 
         user = users.get_user_helper_authid(oid=userinfo_response["sub"])
         if not user:
-            add_object_to_database(
+            db.add_object(
                 User(
                     auth_provider_id=userinfo_response["sub"],
                     email=userinfo_response["email"],
@@ -167,7 +160,7 @@ def callback():
         token_expiry = datetime.now() + timedelta(days=1)
         token_content["expires"] = str(token_expiry)
         jwt_token=Generate_JWT(token_content)
-        saved_token = add_object_to_database(AccessToken(
+        saved_token = db.add_object(AccessToken(
             registered_to_user = user.id,
             expires = token_expiry,
             token_value = jwt_token
