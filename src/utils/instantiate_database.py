@@ -16,9 +16,8 @@ def user() -> dict:
         "created_at": str(datetime.now())
         }
 
-def expense(id:int, user:int=1, category:int=1) -> dict:
+def expense(user:int, category:int) -> dict:
     return {
-        "id": id,
         "registered_by_user": user,
         "created_at": str(datetime.now()),
         "updated_at": str(datetime.now()),
@@ -37,14 +36,14 @@ def create_users(count: int):
 
 def create_expenses(count: int, user_count: int, category_count: int):
     for i in range(count):
-        params = expense(i+1, random.randint(1, user_count - 1), random.randint(1, user_count - 1))
+        params = expense(random.randint(0, user_count - 1), random.randint(0, category_count - 1))
         db.add_object(Expense(**params))
     return db.get_entries(Expense)
 
 def create_categories():
     categories = ["Kid", "Health", "Home", "Other"]
     for i in range(len(categories)):
-        params = {"id": i+1, "name": categories[i]}
+        params = {"name": categories[i]}
         db.add_object(Category(**params))
     return db.get_entries(Category)
 
