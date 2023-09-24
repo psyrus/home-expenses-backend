@@ -9,9 +9,8 @@ def get_random_string(len: int) -> str:
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(len))
 
-def user(id:int=random.randint(10, 1000)) -> dict:
+def user() -> dict:
     return {
-        "id": id,
         "auth_provider_id": get_random_string(15),
         "username": (name:=get_random_string(5)).capitalize(),
         "email": f"{name}@email.com",
