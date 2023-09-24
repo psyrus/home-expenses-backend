@@ -5,6 +5,7 @@ import json
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 import logging
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 from flask import Flask, redirect, request, abort
 from flask_cors import CORS
 app = Flask(__name__)
@@ -25,7 +26,6 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
 LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
 app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
-logging.basicConfig(format='%(levelname)s: %(message)s', level=LOGGING_LEVEL)
 
 from .utils import db
 
@@ -69,7 +69,7 @@ def reset_db():
     from .utils import db
     from .utils.instantiate_database import add_test_entries
     engine = db.get_engine()
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine, checkfirst=False)
     Base.metadata.create_all(bind=engine)
     logging.info("Populating database...")
     add_test_entries()
