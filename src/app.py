@@ -5,8 +5,8 @@ import json
 
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-from flask import Flask, redirect, request, url_for, abort
-from flask_cors import CORS, cross_origin
+from flask import Flask, redirect, request, abort
+from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 app.config['Access-Control-Allow-Origin'] = '*'
@@ -31,20 +31,14 @@ app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
-# wrapper
 def login_required(function):
-    print("does this work at all?")
     def wrapper(*args, **kwargs):
-        print("wrapper called")
         encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-        print(encoded_jwt)
         if not is_jwt_valid(encoded_jwt, app.secret_key):
             return abort(401)
         else:
-            print("It is working!")
             return function()
     return wrapper
-
 
 def Generate_JWT(payload):
     import jwt
@@ -74,7 +68,8 @@ def reset_db():
     from sqlalchemy_utils import database_exists, create_database, drop_database
     from .models.base import Base
     from .utils.instantiate_database import add_test_entries
-    engine = create_engine(os.environ.get("DB_ADDRESS"))
+    from .utils.api_helpers import get_engine
+    engine = get_engine()
     if database_exists(engine.url):
         drop_database(engine.url)
     create_database(engine.url)
