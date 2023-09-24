@@ -56,7 +56,7 @@ def test_token():
     try:
         encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
         decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
-        print(decoded_jwt)
+        logging.debug(decoded_jwt)
         return decoded_jwt
     except Exception as e:
         return Response(
