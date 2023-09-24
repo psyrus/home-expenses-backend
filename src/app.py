@@ -2,54 +2,66 @@
 # This line needs to exist AFTER the app is initialized
 import os
 import json
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user,
-)
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-from flask import Flask, redirect, request, url_for
-from flask_cors import CORS, cross_origin
-# from src.utils import api_helpers
+import logging
+from flask import Flask, redirect, request, abort
+from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
-
-# Configure the logging settings DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
-# Note: logging config must happen before any calls to logging.info() etc.
-import logging
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-
-from .models.models import User
-from .routes import expenses, users, categories
-
+app.config['Access-Control-Allow-Origin'] = '*'
+app.config["Access-Control-Allow-Headers"]="Content-Type"
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-# Third-party libraries
+from .models.models import User, AccessToken
+from .routes import expenses, users, categories
+from .utils import db
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 # Configuration
+load_dotenv(".env")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
-GOOGLE_DISCOVERY_URL = (
-    "https://accounts.google.com/.well-known/openid-configuration"
-)
-app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
+GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
+LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
+app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=LOGGING_LEVEL)
 
-# User session management setup
-# https://flask-login.readthedocs.io/en/latest
-login_manager = LoginManager()
-login_manager.init_app(app)
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
-# Flask-Login helper to retrieve a user from our db
-@login_manager.user_loader
-def load_user(user_id):
-    return users.get_user_helper(user_id)
+def login_required(function):
+    def wrapper(*args, **kwargs):
+        encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
+        if not db.is_jwt_valid(encoded_jwt, app.secret_key):
+            return abort(401)
+        else:
+            return function()
+    return wrapper
 
+def Generate_JWT(payload):
+    import jwt
+    encoded_jwt = jwt.encode(payload, app.secret_key, algorithm="HS256")
+    return encoded_jwt
+
+@app.route("/test-token", methods=["GET"])
+@login_required
+def test_token():
+    import jwt
+    from flask import Response
+    try:
+        encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
+        decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
+        logging.debug(decoded_jwt)
+        return decoded_jwt
+    except Exception as e:
+        return Response(
+            response=json.dumps({"message":"Decoding JWT Failed", "exception":e.args}),
+            status=500,
+            mimetype='application/json'
+        )
 
 @app.route("/reset", methods=["GET"])
 def reset_db():
@@ -67,17 +79,7 @@ def reset_db():
 
 @app.route("/", methods=["GET"])
 def home():
-    if current_user.is_authenticated:
-        return (
-            "<p>Hello, {}! You're logged in! Email: {}</p>"
-            "<div><p>Google Profile Picture:</p>"
-            '<img src="{}" alt="Google profile pic"></img></div>'
-            '<a class="button" href="/logout">Logout</a>'.format(
-                current_user.name, current_user.email, current_user.profile_pic
-            )
-        )
-    else:
-        return '<a class="button" href="/login">Google Login</a>'
+    return '<a class="button" href="/login">Google Login</a>'
 
 
 def get_google_provider_cfg():
@@ -132,29 +134,39 @@ def callback():
     # including their Google profile image and email
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
-    userinfo_response = requests.get(uri, headers=headers, data=body)
+    userinfo_response = dict(requests.get(uri, headers=headers, data=body).json())
 
     # You want to make sure their email is verified.
     # The user authenticated with Google, authorized your
     # app, and now you've verified their email through Google!
-    if userinfo_response.json().get("email_verified"):
-        # unique_id = userinfo_response.json()["sub"]
-        # users_email = userinfo_response.json()["email"]
-        # picture = userinfo_response.json()["picture"]
-        # users_name = userinfo_response.json()["given_name"]
+    if userinfo_response.get("email_verified"):
+        # unique_id = userinfo_response["sub"]
+        # users_email = userinfo_response["email"]
+        # picture = userinfo_response["picture"]
+        # users_name = userinfo_response["given_name"]
 
-        user = users.get_user_helper_authid(oid=userinfo_response.json()["sub"])
+        user = users.get_user_helper_authid(oid=userinfo_response["sub"])
         if not user:
-            users.add_object_to_database(
+            db.add_object(
                 User(
-                    auth_provider_id=userinfo_response.json()["sub"],
-                    email=userinfo_response.json()["email"],
-                    username=userinfo_response.json()["given_name"],
+                    auth_provider_id=userinfo_response["sub"],
+                    email=userinfo_response["email"],
+                    username=userinfo_response["given_name"],
                 )
             )
-            user = users.get_user_helper_authid(oid=userinfo_response.json()["sub"])
+            user = users.get_user_helper_authid(oid=userinfo_response["sub"])
+        
+        token_content = userinfo_response.copy()
+        token_expiry = datetime.now() + timedelta(days=1)
+        token_content["expires"] = str(token_expiry)
+        jwt_token=Generate_JWT(token_content)
+        saved_token = db.add_object(AccessToken(
+            registered_to_user = user.id,
+            expires = token_expiry,
+            token_value = jwt_token
+        ))
 
-        return user.get_dict()
+        return saved_token
     else:
         return "User email not available or not verified by Google.", 400
 
