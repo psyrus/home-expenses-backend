@@ -7,20 +7,20 @@ from .base import Base
 class Category(Base):
     __tablename__ = 'categories'
 
-    id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name = mapped_column(String, unique=True)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    name = mapped_column(String, unique=True, nullable=False)
 
 class Expense(Base):
     __tablename__ = 'expenses'
 
-    id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    registered_by_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'))
-    created_at = mapped_column(DateTime, server_default=func.now())
+    id = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    registered_by_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'), nullable=False)
+    created_at = mapped_column(DateTime, server_default=func.now(), nullable=False)
     updated_at = mapped_column(DateTime)
 
-    category = mapped_column(ForeignKey('categories.id'))
-    expense_date = mapped_column(DateTime)
-    cost = mapped_column(Integer)
+    category = mapped_column(ForeignKey('categories.id'), nullable=False)
+    expense_date = mapped_column(DateTime, nullable=False)
+    cost = mapped_column(Integer, nullable=False)
     description = mapped_column(String)
     paid_back = mapped_column(Boolean, default=False)
 
@@ -32,9 +32,9 @@ class Expense(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    auth_provider_id = mapped_column(String, unique=True)
-    username = mapped_column(String)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    auth_provider_id = mapped_column(String, unique=True, nullable=False)
+    username = mapped_column(String, nullable=False)
     email = mapped_column(String, unique=True)
     created_at = mapped_column(DateTime, server_default=func.now())
 
@@ -44,8 +44,8 @@ class User(Base):
 class AccessToken(Base):
     __tablename__ = 'accesstokens'
 
-    id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    registered_to_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'))
-    created_at = mapped_column(DateTime, server_default=func.now())
-    expires = mapped_column(DateTime)
-    token_value = mapped_column(String)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    registered_to_user = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'), nullable=False)
+    created_at = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    expires = mapped_column(DateTime, nullable=False)
+    token_value = mapped_column(String, nullable=False)
