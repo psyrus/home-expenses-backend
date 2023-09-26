@@ -27,7 +27,7 @@ def get_users_api():
 @app.route("/user/<int:id>", methods=["GET"])
 def get_user_api(id):
     user = get_user_helper(id)
-    return json.loads(json.dumps(user.get_dict(), default = str))
+    return user.get_dict()
 
 
 @app.route("/user", methods=["POST"])

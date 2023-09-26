@@ -78,11 +78,11 @@ def get_entries(class_type: Base) -> list[Base]:
         return db_entries
 
 def get_json_single(db_object: Base) -> dict:
-    return json.loads(json.dumps(db_object.get_dict(), default = str))
+    return db_object.get_dict()
 
 def get_json_array(db_object_list: list[Base]) -> dict:
     output = [i.get_dict() for i in db_object_list]
-    return json.loads(json.dumps(output, default = str))
+    return output
 
 def delete_object(obj: Base, session: Session = None) -> dict | str:
     if obj == None:
