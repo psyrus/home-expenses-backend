@@ -9,6 +9,8 @@
             "type": "python",
             "request": "launch",
             "module": "flask",
+            "preLaunchTask": "db-up",
+            "postDebugTask": "db-down",
             "env": {
                 "FLASK_APP": "src/app.py",
                 "FLASK_DEBUG": "1"
