@@ -166,7 +166,13 @@ def callback():
             token_value = jwt_token
         ))
 
-        return saved_token
+        redirect_location = request.args.get("state")
+        combined = requests.models.PreparedRequest()
+        combined.prepare_url(redirect_location, {
+            "token": jwt_token
+        })
+
+        return redirect(location=combined.url)
     else:
         return "User email not available or not verified by Google.", 400
 
