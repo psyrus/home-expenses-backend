@@ -29,6 +29,13 @@ def get_user_api(id):
     user = get_user_helper(id)
     return user.get_dict()
 
+@app.route("/user/me", methods=["GET"])
+def get_user_current():
+    import jwt
+    encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
+    decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
+    user = get_user_helper_authid(decoded_jwt['sub'])
+    return user.get_dict()
 
 @app.route("/user", methods=["POST"])
 def new_user_api():
