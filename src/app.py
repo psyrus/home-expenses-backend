@@ -8,8 +8,9 @@ import logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 from flask import Flask, redirect, request, abort
 from flask_cors import CORS
+
 app = Flask(__name__)
-CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 app.config['Access-Control-Allow-Origin'] = '*'
 app.config["Access-Control-Allow-Headers"]="Content-Type"
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -25,26 +26,14 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
 LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
-app.secret_key = os.getenv("APP_SECRET_KEY") or os.urandom(24)
+
+from .utils.authorization import secret_key, Generate_JWT, login_required
+app.secret_key = secret_key
 
 from .utils import db
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
-
-def login_required(function):
-    def wrapper(*args, **kwargs):
-        encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-        if not db.is_jwt_valid(encoded_jwt, app.secret_key):
-            return abort(401)
-        else:
-            return function()
-    return wrapper
-
-def Generate_JWT(payload):
-    import jwt
-    encoded_jwt = jwt.encode(payload, app.secret_key, algorithm="HS256")
-    return encoded_jwt
 
 @app.route("/test-token", methods=["GET"])
 @login_required
@@ -140,11 +129,6 @@ def callback():
     # The user authenticated with Google, authorized your
     # app, and now you've verified their email through Google!
     if userinfo_response.get("email_verified"):
-        # unique_id = userinfo_response["sub"]
-        # users_email = userinfo_response["email"]
-        # picture = userinfo_response["picture"]
-        # users_name = userinfo_response["given_name"]
-
         user = users.get_user_helper_authid(oid=userinfo_response["sub"])
         if not user:
             db.add_object(
