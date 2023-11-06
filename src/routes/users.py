@@ -4,7 +4,6 @@ from flask import request
 from ..models.models import User
 import json
 from ..utils import db
-from ..utils.authorization import login_required
 
 def get_user_helper(id:int) -> User:
     with db.get_session() as s:
@@ -21,19 +20,16 @@ def get_user_helper_authid(oid):
             return None
 
 @app.route("/users", methods=["GET"])
-@login_required
 def get_users_api():
     return db.get_json_array(db.get_entries(User))
     
 
 @app.route("/user/<int:id>", methods=["GET"])
-@login_required
 def get_user_api(id):
     user = get_user_helper(id)
     return user.get_dict()
 
 @app.route("/user/me", methods=["GET"])
-@login_required
 def get_user_current():
     import jwt
     encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
@@ -42,7 +38,6 @@ def get_user_current():
     return user.get_dict()
 
 @app.route("/user", methods=["POST"])
-@login_required
 def new_user_api():
     body = request.get_json()
     new_user = User(**body)
@@ -50,14 +45,12 @@ def new_user_api():
 
 
 @app.route("/user/<int:id>", methods=["DELETE"])
-@login_required
 def delete_user_api(id):
     user = get_user_helper(id)
     return db.delete_object(user)
 
 
 @app.route("/user/<int:id>", methods=["PATCH"])
-@login_required
 def update_user_api(id):
     req = request.get_json()
     s = db.get_session()

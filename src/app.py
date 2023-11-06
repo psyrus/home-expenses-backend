@@ -7,12 +7,11 @@ import requests
 import logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 from flask import Flask, redirect, request, abort
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 app.config['Access-Control-Allow-Origin'] = '*'
-app.config["Access-Control-Allow-Headers"]="Content-Type"
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
@@ -27,7 +26,7 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
 LOGGING_LEVEL = logging._nameToLevel.get(os.getenv("LOGGING_LEVEL"), 'INFO')
 
-from .utils.authorization import secret_key, Generate_JWT, login_required
+from .utils.authorization import secret_key, Generate_JWT, public_endpoint
 app.secret_key = secret_key
 
 from .utils import db
@@ -35,8 +34,15 @@ from .utils import db
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
+@app.before_request
+def check_valid_login():
+    if request.method == "OPTIONS" or getattr(app.view_functions[request.endpoint], 'is_public', False):
+        return
+    encoded_jwt=request.headers.get("Authorization", "").split("Bearer ")[-1]
+    if not db.is_jwt_valid(encoded_jwt, secret_key):
+        abort(401)
+
 @app.route("/test-token", methods=["GET"])
-@login_required
 def test_token():
     import jwt
     from flask import Response
@@ -53,6 +59,7 @@ def test_token():
         )
 
 @app.route("/reset", methods=["GET"])
+@public_endpoint
 def reset_db():
     from .models.base import Base
     from .utils import db
@@ -76,6 +83,7 @@ def get_google_provider_cfg():
 
 
 @app.route("/login")
+@public_endpoint
 def login():
     # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
@@ -92,6 +100,7 @@ def login():
 
 
 @app.route("/login/callback")
+@public_endpoint
 def callback():
     # Get authorization code Google sent back to you
     code = request.args.get("code")
