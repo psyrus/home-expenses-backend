@@ -1,20 +1,22 @@
 from ..app import app
-from ..utils import *
 from flask import request
 from ..models.models import Category
+from ..utils import db
+from ..utils.authorization import public_endpoint
 
 
 @app.route("/category", methods=["POST"])
 def new_category_api():
     body = request.get_json()
     new_category = Category(**body)
-    return add_object_to_database(new_category)
+    return db.add_object(new_category)
 
 @app.route("/categories", methods=["GET"])
+@public_endpoint
 def get_categories_api():
-    return get_json_array(get_db_entries(Category))
+    return db.get_json_array(db.get_entries(Category))
 
 @app.route("/category/<int:id>", methods=["DELETE"])
 def delete_category_api(id):
-    category = get_db_entry_by_id(Category ,id)
-    return delete_object_from_database(category)
+    category = db.get_entry_by_id(Category ,id)
+    return db.delete_object(category)
