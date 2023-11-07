@@ -2,6 +2,7 @@ from ..app import app
 from flask import request
 from ..models.models import Category
 from ..utils import db
+from ..utils.authorization import public_endpoint
 
 
 @app.route("/category", methods=["POST"])
@@ -11,6 +12,7 @@ def new_category_api():
     return db.add_object(new_category)
 
 @app.route("/categories", methods=["GET"])
+@public_endpoint
 def get_categories_api():
     return db.get_json_array(db.get_entries(Category))
 
