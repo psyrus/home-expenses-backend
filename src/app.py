@@ -7,7 +7,7 @@ import requests
 import logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 from flask import Flask, redirect, request, abort
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
