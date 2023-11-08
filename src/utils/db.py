@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import engine
 from sqlalchemy import select
@@ -20,6 +21,19 @@ def get_engine() -> engine:
 def get_session() -> Session:
     engine = get_engine()
     return Session(engine)
+
+def add_object_list(obj_list: List[Base]) -> dict | str:
+    with get_session() as s:
+        try:
+            s.add_all(obj_list)
+            s.commit()
+            json_parsed = get_json_array(obj_list)
+            logging.debug("Object added successfully: %s" % json_parsed)
+            return json_parsed
+        except Exception as e:
+            s.rollback()
+            logging.error(e)
+            return e.orig.args[0]
 
 def add_object(obj: Base) -> dict | str:
     with get_session() as s:

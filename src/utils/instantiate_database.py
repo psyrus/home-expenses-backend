@@ -24,9 +24,45 @@ def expense(user:int, category:int) -> dict:
         "category": category,
         "expense_date": str(datetime.now()),
         "cost": random.randint(100, 10000),
-        "description": get_random_string(200),
+        "description": get_random_string(random.randint(50, 200)),
         "paid_back": False
     }
+
+def group() -> dict:
+    return {
+        "name": get_random_string(10),
+        "description": get_random_string(random.randint(50, 200))
+    }
+
+def groupmember(group: int, user: int, admin: bool) -> dict:
+    return {
+        "user_id": user,
+        "group_id": group,
+        "is_admin": admin,
+    }
+
+def create_groups(users: List[User]):
+    groups: List[Group] = []
+    num_groups = len(users) // 3
+
+
+    for i in range(num_groups):
+        groups.append(Group(**(group())))
+        
+    db.add_object_list(groups)
+    groups = db.get_entries(Group)
+
+    for g in groups:
+        num_users = random.randint(1, 8)
+        usr_idx = random.randint(0, len(users) // num_users)
+        members = []
+        while usr_idx < len(users):
+            usr = users[usr_idx]
+            members.append(GroupMember(**(groupmember(g.id, usr.id, (len(members) < 1)))))
+            usr_idx += random.randint(0, len(users) // num_users)
+
+        db.add_object_list(members)
+
 
 def create_users(count: int):
     for i in range(count):
@@ -48,9 +84,10 @@ def create_categories():
     return db.get_entries(Category)
 
 def add_test_entries():
-    users = create_users(4)
+    users = create_users(20)
     categories = create_categories()
     expenses = create_expenses(100, len(users), len(categories))
+    groups = create_groups(users)
 
 if __name__ == "__main__":
     add_test_entries()
