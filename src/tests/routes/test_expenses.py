@@ -1,6 +1,6 @@
 from ...routes import expenses
 import unittest
-from ...utils import *
+from ...utils.utils import *
 from random import randint
 
 '''
@@ -14,8 +14,7 @@ class TestExpensesRoutes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_id = randint(10000, 99999)
-        engine_endpoint = get_test_engine_endpoint(cls.test_id)
-        cls.engine = get_engine(engine_endpoint)
+        cls.engine = get_engine(get_test_engine_endpoint())
         reset_db(cls.engine)
         cls.db_session = get_session(cls.engine.url)
 

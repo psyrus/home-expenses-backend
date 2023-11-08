@@ -3,10 +3,11 @@ from sqlalchemy import (create_engine, engine)
 import sqlalchemy
 from sqlalchemy import select
 import json
-from .models.models import Base
+import logging
+from ..models.models import Base
 from sqlalchemy import (create_engine)
 from sqlalchemy_utils import database_exists, create_database, drop_database
-from .models.base import Base
+from ..models.base import Base
 
 def get_engine(engine_endpoint: str = "postgresql+psycopg://postgres:postgres@localhost:5432/backend") -> sqlalchemy.Engine:
     return create_engine(engine_endpoint)
@@ -17,13 +18,19 @@ def get_session(engine_endpoint: str = "", engine: sqlalchemy.Engine = None) -> 
     return Session(engine)
 
 def reset_db(engine: sqlalchemy.Engine) -> None:
-    if database_exists(engine.url):
-        drop_database(engine.url)
-    create_database(engine.url)
-    Base.metadata.create_all(engine)
+    from ..models.base import Base
+    from ..utils import db
+    from ..utils.instantiate_database import add_test_entries
+    engine = db.get_engine()
+    Base.metadata.drop_all(bind=engine, checkfirst=False)
+    Base.metadata.create_all(bind=engine)
+    logging.info("Populating database...")
+    add_test_entries()
+    logging.info("Done")
+    return "ok"
 
-def get_test_engine_endpoint(suffix: int) -> str:
-    return "postgresql+psycopg://postgres:postgres@localhost:5432/backend%s" % suffix
+def get_test_engine_endpoint() -> str:
+    return "sqlite://"
 
 def remove_test_database(engine_url: str) -> None:
     drop_database(engine_url)

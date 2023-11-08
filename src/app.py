@@ -60,17 +60,9 @@ def test_token():
 
 @app.route("/reset", methods=["GET"])
 @public_endpoint
-def reset_db():
-    from .models.base import Base
-    from .utils import db
-    from .utils.instantiate_database import add_test_entries
-    engine = db.get_engine()
-    Base.metadata.drop_all(bind=engine, checkfirst=False)
-    Base.metadata.create_all(bind=engine)
-    logging.info("Populating database...")
-    add_test_entries()
-    logging.info("Done")
-    return "ok"
+def reset_db_endpoint():
+   from utils.utils import reset_db
+   reset_db(db.get_engine())
 
 
 @app.route("/", methods=["GET"])
