@@ -1,14 +1,27 @@
 from ..app import app
-from flask import request
+from flask import request, abort
 from ..models.models import Group, GroupMember
+from ..utils.authorization import public_endpoint
 from ..utils import db
+from .users import get_user_current
+import logging
 
-def isGroupMember(group, user_id):
-    pass
+def isGroupMember(group: Group, user_id: int) -> bool:
+    return True
+    return any(m.user_id == user_id for m in group.members)
 
-def isGroupAdmin(group, user_id):
-    pass
+def isGroupAdmin(group: Group, user_id: int) -> bool:
+    return True
+    for member in group.members:
+        if member.user_id == user_id:
+            return True
+    return False
 
+def isGroupExpensesResolved(group: Group) -> bool:
+    # TODO: This will need to be fleshed out
+    return True
+
+@public_endpoint
 @app.route("/groups", methods=["GET"])
 def get_groups_api():
     # This should only return the groups relevant to the user
@@ -16,8 +29,12 @@ def get_groups_api():
 
 @app.route("/group/<int:groupId>", methods=["GET"])
 def get_group_api(groupId: int):
-    # Need to check if the user making the request is in the group
-    return (db.get_entry_by_id(Group, groupId)).get_dict()
+    with db.get_session() as session:
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupMember(group, current_user['id']):
+            abort(401)
+    return group.get_dict()
 
 @app.route("/group", methods=["POST"])
 def new_group_api():
@@ -25,37 +42,52 @@ def new_group_api():
     new_group = Group(**body)
     return db.add_object(new_group)
 
-@app.route("/group/<int:id>", methods=["DELETE"])
-def delete_group_api(id):
-    # Need to check if the user making the request is an admin of the group
-    group = db.get_entry_by_id(Group ,id)
-    return db.delete_object(Group)
+@app.route("/group/<int:groupId>", methods=["DELETE"])
+def delete_group_api(groupId: int):
+    with db.get_session() as session:
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupAdmin(group, current_user['id']):
+            abort(401)
+        return db.delete_object(group, session)
 
 @app.route("/group/<int:groupId>/members", methods=["GET"])
 def get_group_members_api(groupId: int):
-    # Need to check if the user making the request is in the group
-    with db.get_session() as s:
-        try:
-            return db.get_json_array(s.scalars(db.select(GroupMember).where(GroupMember.group_id == groupId)).all())
-        except:
-            return None
+    with db.get_session() as session:
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupMember(group, current_user['id']):
+            abort(401)
+        return db.get_json_array(group.members)
 
 @app.route("/group/<int:groupId>/member", methods=["POST"])
 def new_group_member_api(groupId: int):
     body = request.get_json()
-    # Need to check if the user making the request is an admin of the group
-    new_group_member = GroupMember(**body)
-    return db.add_object(new_group_member)
+    with db.get_session() as session:
+        new_group_member = GroupMember(**body)
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupAdmin(group, current_user['id']):
+            abort(401)
+        return db.add_object(new_group_member)
 
 @app.route("/group/<int:groupId>/member/<int:memberId>", methods=["PATCH"])
-def new_group_member_api(groupId: int, memberId: int):
-    pass
+def update_group_member_api(groupId: int, memberId: int):
     body = request.get_json()
-    # Need to check if the user making the request is an admin of the group
-    new_group = GroupMember(**body)
-    return db.add_object(new_group)
+    with db.get_session() as session:
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupAdmin(group, current_user['id']):
+            abort(401)
+        group_member = db.get_entry_by_id(GroupMember, memberId, session)
+        return db.update_object_properties(group_member, body)
 
-@app.route("/group/<int:id>", methods=["DELETE"])
-def delete_group_member_api(id):
-    group = db.get_entry_by_id(Group ,id)
-    return db.delete_object(group)
+@app.route("/group/<int:groupId>/member/<int:memberId>", methods=["DELETE"])
+def delete_group_member_api(groupId: int, memberId: int):
+    with db.get_session() as session:
+        current_user = get_user_current()
+        group: Group = db.get_entry_by_id(Group, groupId, session)
+        if not isGroupAdmin(group, current_user['id']):
+            abort(401)
+        group_member = db.get_entry_by_id(GroupMember, memberId, session)
+        return db.delete_object(group_member)

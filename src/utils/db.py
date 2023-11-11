@@ -1,5 +1,5 @@
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from sqlalchemy import engine
 from sqlalchemy import select
 import json
@@ -69,26 +69,28 @@ def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
             pass
     return is_valid
 
-def get_entry_by_id(class_type: Base, id: int) -> Base:
+def get_entry_by_id(class_type: Base, id: int, db_session: Session = None) -> Base:
     db_select = select(class_type).where(class_type.id == id)
-    
-    with get_session() as s:
-        try:
-            db_entry = s.scalars(db_select).one()
-            logging.debug(db_entry)
-            logging.debug(db_entry.get_dict())
-        except:
-            return None
-            
-        return db_entry
+    should_close: bool = db_session == None
+    db_session = db_session or get_session()
+    try:
+        db_entry = db_session.scalars(db_select).one()
+        logging.debug(db_entry)
+        logging.debug(db_entry.get_dict())
+    except:
+        return None
+
+    if should_close:
+        db_session.close()
+    return db_entry
 
 def get_entries(class_type: Base) -> list[Base]:
     db_select = select(class_type)
-    
+
     with get_session() as s:
         db_entries = s.scalars(db_select).all()
         logging.debug(get_json_array(db_entries))
-            
+
         return db_entries
 
 def get_json_single(db_object: Base) -> dict:
@@ -98,19 +100,28 @@ def get_json_array(db_object_list: list[Base]) -> dict:
     output = [i.get_dict() for i in db_object_list]
     return output
 
-def delete_object(obj: Base, session: Session = None) -> dict | str:
+def delete_object(obj: Base, session: Session = None) -> str:
     if obj == None:
         return "Entity in database did not exist"
-    with session or get_session() as s:
-        try:
-            s.delete(obj)
-            s.commit()
-            return "Object deleted successfully: %s" % obj.get_dict()
-        except Exception as e:
-            s.rollback()
-            logging.error(e)
-            return e.orig.args[0]
-        
+    should_close = False
+    if not session:
+        session = get_session()
+        should_close = True
+
+    try:
+        session.delete(obj)
+        session.commit()
+        msg: str = "Object deleted successfully: %s" % obj.get_dict()
+    except Exception as e:
+        session.rollback()
+        logging.error(e)
+        msg: str = e.orig.args[0]
+
+    if should_close:
+        session.close()
+
+    return msg
+
 def update_object_properties(obj: Base, patch: dict) -> None:
     obj_dict = obj.get_dict()
     for key in obj_dict.keys():

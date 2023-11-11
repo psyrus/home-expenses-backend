@@ -74,7 +74,7 @@ class Group(Base):
     name: Mapped[String] = mapped_column(String, nullable=False)
     description: Mapped[String] = mapped_column(String, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    members: Mapped[List["GroupMember"]] = relationship(back_populates="group")
+    members: Mapped[List["GroupMember"]] = relationship(back_populates="group", cascade='all, delete')
 
     @validates('id', 'name ', 'description', 'created_at', 'members')
     def empty_string_to_null(self, key, value):

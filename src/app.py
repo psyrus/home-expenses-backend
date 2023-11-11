@@ -15,7 +15,7 @@ app.config['Access-Control-Allow-Origin'] = '*'
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
-from .routes import expenses, users, categories
+from .routes import expenses, users, categories, groups
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
