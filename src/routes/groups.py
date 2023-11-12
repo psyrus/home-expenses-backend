@@ -5,6 +5,8 @@ from ..utils.authorization import public_endpoint
 from ..utils import db
 from .users import get_user_current
 import logging
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 def isGroupMember(group: Group, user_id: int) -> bool:
     return True
@@ -25,7 +27,12 @@ def isGroupExpensesResolved(group: Group) -> bool:
 @app.route("/groups", methods=["GET"])
 def get_groups_api():
     # This should only return the groups relevant to the user
-    return db.get_json_array(db.get_entries(Group))
+    with db.get_session() as session:
+        try:
+            groups = session.scalars(select(Group).options(joinedload(Group.members))).unique().all()
+            return db.get_json_array(groups)
+        except Exception as e:
+            print(e)
 
 @app.route("/group/<int:groupId>", methods=["GET"])
 def get_group_api(groupId: int):
@@ -34,7 +41,9 @@ def get_group_api(groupId: int):
         group: Group = db.get_entry_by_id(Group, groupId, session)
         if not isGroupMember(group, current_user['id']):
             abort(401)
-    return group.get_dict()
+        group_tmp = group.get_dict()
+        group_tmp['members'] = db.get_json_array(group.members)
+    return group_tmp
 
 @app.route("/group", methods=["POST"])
 def new_group_api():
