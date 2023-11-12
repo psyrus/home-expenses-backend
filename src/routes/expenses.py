@@ -1,7 +1,9 @@
 from flask import request
 from ..app import app
-from ..models.models import Expense
+from ..models.models import Expense, User, Category
 from ..utils import db
+from sqlalchemy import select
+from ..utils.authorization import public_endpoint
 
 @app.route("/expense", methods=["POST"])
 def add_expense_api():
@@ -14,6 +16,17 @@ def add_expense_api():
 def get_expense_all_api():
     return db.get_json_array(db.get_entries(Expense))
 
+@public_endpoint
+@app.route("/expenses_v2", methods=["GET"])
+def get_expense_all_extended_api():
+    with db.get_session() as session:
+        query = select(Expense)
+        extended_expenses = session.scalars(query).all()
+        output = []
+        for item in extended_expenses:
+            json_version = item.get_dict()
+            output.append(json_version)
+        return output
 
 @app.route("/expense/<int:expenseId>", methods=["GET"])
 def get_expense_api(expenseId):

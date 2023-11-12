@@ -32,10 +32,10 @@ class Expense(Base):
     def empty_string_to_null(self, key, value):
         return None if value == '' else value
 
-    user = relationship(
-        'User', primaryjoin='Expense.registered_by_user == User.id', backref='user_expenses')
+    user_ref = relationship(
+        'User', primaryjoin='Expense.registered_by_user == User.id', lazy="joined", join_depth=2)
     category_ref = relationship(
-        'Category', primaryjoin='Expense.category == Category.id')
+        'Category', primaryjoin='Expense.category == Category.id', lazy="joined", join_depth=2)
 
 class User(Base):
     __tablename__ = 'users'
