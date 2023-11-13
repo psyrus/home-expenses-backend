@@ -91,7 +91,7 @@ def get_entries(class_type: Base, eager_load:bool = False, db_session: Session =
     if eager_load:
         db_select = db_select.options(joinedload('*'))
     db_session = db_session or get_session()
-    db_entries = db_session.scalars(db_select).all()
+    db_entries = db_session.scalars(db_select).unique().all()
     logging.debug(get_json_array(db_entries))
 
     if should_close:

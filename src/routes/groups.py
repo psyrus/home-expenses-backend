@@ -9,11 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 def isGroupMember(group: Group, user_id: int) -> bool:
-    return True
     return any(m.user_id == user_id for m in group.members)
 
 def isGroupAdmin(group: Group, user_id: int) -> bool:
-    return True
     for member in group.members:
         if member.user_id == user_id:
             return True
@@ -27,12 +25,8 @@ def isGroupExpensesResolved(group: Group) -> bool:
 @app.route("/groups", methods=["GET"])
 def get_groups_api():
     # This should only return the groups relevant to the user
-    with db.get_session() as session:
-        try:
-            groups = session.scalars(select(Group).options(joinedload(Group.members))).unique().all()
-            return db.get_json_array(groups)
-        except Exception as e:
-            print(e)
+    groups = db.get_entries(Group, eager_load=False)
+    return db.get_json_array(groups)
 
 @app.route("/group/<int:groupId>", methods=["GET"])
 def get_group_api(groupId: int):
