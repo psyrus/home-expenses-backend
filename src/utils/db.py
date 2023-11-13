@@ -1,16 +1,16 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import engine
-from sqlalchemy import select
-import json
 import logging
-from ..databases.database_interface import DatabaseSingleton
-from ..models.models import Base, User, AccessToken
 import os
-from dotenv import load_dotenv
-import jwt
 from datetime import datetime
-load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
 
+import jwt
+from dotenv import load_dotenv
+from sqlalchemy import engine, select
+from sqlalchemy.orm import Session, joinedload
+
+from ..databases.database_interface import DatabaseSingleton
+from ..models.models import AccessToken, Base, User
+
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
 
 _engine = DatabaseSingleton()
 
@@ -55,9 +55,10 @@ def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
             pass
     return is_valid
 
-def get_entry_by_id(class_type: Base, id: int) -> Base:
+def get_entry_by_id(class_type: Base, id: int, eager_load:bool = False) -> Base:
     db_select = select(class_type).where(class_type.id == id)
-    
+    if eager_load:
+        db_select = db_select.options(joinedload('*'))
     with get_session() as s:
         try:
             db_entry = s.scalars(db_select).one()
@@ -68,9 +69,10 @@ def get_entry_by_id(class_type: Base, id: int) -> Base:
             
         return db_entry
 
-def get_entries(class_type: Base) -> list[Base]:
+def get_entries(class_type: Base, eager_load:bool = False) -> list[Base]:
     db_select = select(class_type)
-    
+    if eager_load:
+        db_select = db_select.options(joinedload('*'))
     with get_session() as s:
         db_entries = s.scalars(db_select).all()
         logging.debug(get_json_array(db_entries))

@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import (Boolean, Column, DateTime, Integer, String, ForeignKey, func)
+from sqlalchemy import (Boolean, DateTime, Integer, String, ForeignKey, func)
 from sqlalchemy.orm import relationship, mapped_column, validates
 
 from .base import Base
@@ -32,8 +32,8 @@ class Expense(Base):
     def empty_string_to_null(self, key, value):
         return None if value == '' else value
 
-    user = relationship(
-        'User', primaryjoin='Expense.registered_by_user == User.id', backref='user_expenses')
+    user_ref = relationship(
+        'User', primaryjoin='Expense.registered_by_user == User.id')
     category_ref = relationship(
         'Category', primaryjoin='Expense.category == Category.id')
 

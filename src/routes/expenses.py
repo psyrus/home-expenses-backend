@@ -1,4 +1,6 @@
 from flask import request
+from sqlalchemy import select
+
 from ..app import app
 from ..models.models import Expense
 from ..utils import db
@@ -9,16 +11,13 @@ def add_expense_api():
     new_expense = Expense(**body)
     return db.add_object(new_expense)
 
-
 @app.route("/expenses", methods=["GET"])
 def get_expense_all_api():
-    return db.get_json_array(db.get_entries(Expense))
-
+    return db.get_json_array(db.get_entries(Expense, eager_load=True))
 
 @app.route("/expense/<int:expenseId>", methods=["GET"])
 def get_expense_api(expenseId):
     return db.get_entry_by_id(Expense, expenseId).get_dict()
-
 
 @app.route("/expense/<int:expenseId>", methods=["PATCH"])
 def update_expense_api(expenseId):
@@ -31,7 +30,6 @@ def update_expense_api(expenseId):
     output = expense.get_dict()
     s.close()
     return output
-
 
 @app.route("/expense/<int:expenseId>", methods=["DELETE"])
 def remove_expense_api(expenseId):
