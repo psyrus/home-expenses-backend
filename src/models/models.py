@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import (Boolean, Column, DateTime, Integer, String, ForeignKey, func)
+from sqlalchemy import (Boolean, DateTime, Integer, String, ForeignKey, func)
 from sqlalchemy.orm import relationship, mapped_column, validates
 
 from .base import Base

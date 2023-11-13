@@ -1,9 +1,9 @@
 from flask import request
-from ..app import app
-from ..models.models import Expense, User, Category
-from ..utils import db
 from sqlalchemy import select
-from ..utils.authorization import public_endpoint
+
+from ..app import app
+from ..models.models import Expense
+from ..utils import db
 
 @app.route("/expense", methods=["POST"])
 def add_expense_api():
@@ -11,12 +11,10 @@ def add_expense_api():
     new_expense = Expense(**body)
     return db.add_object(new_expense)
 
-
 @app.route("/expenses", methods=["GET"])
 def get_expense_all_api():
     return db.get_json_array(db.get_entries(Expense))
 
-@public_endpoint
 @app.route("/expenses_v2", methods=["GET"])
 def get_expense_all_extended_api():
     with db.get_session() as session:
@@ -32,7 +30,6 @@ def get_expense_all_extended_api():
 def get_expense_api(expenseId):
     return db.get_entry_by_id(Expense, expenseId).get_dict()
 
-
 @app.route("/expense/<int:expenseId>", methods=["PATCH"])
 def update_expense_api(expenseId):
     req = request.get_json()
@@ -44,7 +41,6 @@ def update_expense_api(expenseId):
     output = expense.get_dict()
     s.close()
     return output
-
 
 @app.route("/expense/<int:expenseId>", methods=["DELETE"])
 def remove_expense_api(expenseId):

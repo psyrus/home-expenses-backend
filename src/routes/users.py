@@ -1,9 +1,10 @@
-from ..app import app
-from sqlalchemy import select
 from flask import request
+from sqlalchemy import select
+
+from ..app import app
 from ..models.models import User
-import json
 from ..utils import db
+
 
 def get_user_helper(id:int) -> User:
     with db.get_session() as s:
@@ -22,7 +23,6 @@ def get_user_helper_authid(oid):
 @app.route("/users", methods=["GET"])
 def get_users_api():
     return db.get_json_array(db.get_entries(User))
-    
 
 @app.route("/user/<int:id>", methods=["GET"])
 def get_user_api(id):
