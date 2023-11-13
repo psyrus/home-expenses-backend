@@ -1,17 +1,17 @@
-from typing import List
-from sqlalchemy.orm import Session,joinedload
-from sqlalchemy import engine
-from sqlalchemy import select
-import json
 import logging
-from ..databases.database_interface import DatabaseSingleton
-from ..models.models import Base, User, AccessToken
 import os
-from dotenv import load_dotenv
-import jwt
 from datetime import datetime
-load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
+from typing import List
 
+import jwt
+from dotenv import load_dotenv
+from sqlalchemy import engine, select
+from sqlalchemy.orm import Session, joinedload
+
+from ..databases.database_interface import DatabaseSingleton
+from ..models.models import AccessToken, Base, User
+
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
 
 _engine = DatabaseSingleton()
 
@@ -69,8 +69,10 @@ def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
             pass
     return is_valid
 
-def get_entry_by_id(class_type: Base, id: int, db_session: Session = None) -> Base:
+def get_entry_by_id(class_type: Base, id: int, eager_load:bool = False, db_session: Session = None) -> Base:
     db_select = select(class_type).where(class_type.id == id)
+    if eager_load:
+        db_select = db_select.options(joinedload('*'))
     should_close: bool = db_session == None
     db_session = db_session or get_session()
     try:
@@ -79,19 +81,22 @@ def get_entry_by_id(class_type: Base, id: int, db_session: Session = None) -> Ba
         logging.debug(db_entry.get_dict())
     except:
         return None
-
     if should_close:
         db_session.close()
     return db_entry
 
-def get_entries(class_type: Base) -> list[Base]:
+def get_entries(class_type: Base, eager_load:bool = False, db_session: Session = None) -> list[Base]:
     db_select = select(class_type)
+    should_close: bool = db_session == None
+    if eager_load:
+        db_select = db_select.options(joinedload('*'))
+    db_session = db_session or get_session()
+    db_entries = db_session.scalars(db_select).all()
+    logging.debug(get_json_array(db_entries))
 
-    with get_session() as s:
-        db_entries = s.scalars(db_select).all()
-        logging.debug(get_json_array(db_entries))
-
-        return db_entries
+    if should_close:
+            db_session.close()
+    return db_entries
 
 def get_json_single(db_object: Base) -> dict:
     return db_object.get_dict()
