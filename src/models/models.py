@@ -33,9 +33,9 @@ class Expense(Base):
         return None if value == '' else value
 
     user_ref = relationship(
-        'User', primaryjoin='Expense.registered_by_user == User.id', lazy="joined", join_depth=2)
+        'User', primaryjoin='Expense.registered_by_user == User.id')
     category_ref = relationship(
-        'Category', primaryjoin='Expense.category == Category.id', lazy="joined", join_depth=2)
+        'Category', primaryjoin='Expense.category == Category.id')
 
 class User(Base):
     __tablename__ = 'users'

@@ -13,18 +13,7 @@ def add_expense_api():
 
 @app.route("/expenses", methods=["GET"])
 def get_expense_all_api():
-    return db.get_json_array(db.get_entries(Expense))
-
-@app.route("/expenses_v2", methods=["GET"])
-def get_expense_all_extended_api():
-    with db.get_session() as session:
-        query = select(Expense)
-        extended_expenses = session.scalars(query).all()
-        output = []
-        for item in extended_expenses:
-            json_version = item.get_dict()
-            output.append(json_version)
-        return output
+    return db.get_json_array(db.get_entries(Expense, eager_load=True))
 
 @app.route("/expense/<int:expenseId>", methods=["GET"])
 def get_expense_api(expenseId):
