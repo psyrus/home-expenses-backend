@@ -25,7 +25,7 @@ def isGroupExpensesResolved(group: Group) -> bool:
 @app.route("/groups", methods=["GET"])
 def get_groups_api():
     # This should only return the groups relevant to the user
-    groups = db.get_entries(Group, eager_load=False)
+    groups = db.get_entries(Group, eager_load=True)
     return db.get_json_array(groups)
 
 @app.route("/group/<int:groupId>", methods=["GET"])
