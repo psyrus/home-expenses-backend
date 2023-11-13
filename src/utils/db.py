@@ -95,7 +95,7 @@ def get_entries(class_type: Base, eager_load:bool = False, db_session: Session =
     logging.debug(get_json_array(db_entries))
 
     if should_close:
-            db_session.close()
+        db_session.close()
     return db_entries
 
 def get_json_single(db_object: Base) -> dict:
