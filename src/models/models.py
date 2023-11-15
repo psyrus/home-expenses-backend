@@ -1,6 +1,4 @@
 # coding: utf-8
-from typing import List
-
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -75,7 +73,7 @@ class Group(Base):
     name: Mapped[String] = mapped_column(String, nullable=False)
     description: Mapped[String] = mapped_column(String, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    members: Mapped[List["GroupMember"]] = relationship(back_populates="group", cascade='all, delete')
+    members: Mapped[list["GroupMember"]] = relationship(back_populates="group", cascade='all, delete')
 
     @validates('id', 'name ', 'description', 'created_at', 'members')
     def empty_string_to_null(self, key, value):
@@ -84,9 +82,9 @@ class Group(Base):
 class GroupMember(Base):
     __tablename__ = 'groupmembers'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), ForeignKey('groups.id'), nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'), nullable=False)
+    id: Mapped[Integer] = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    group_id: Mapped[Integer] = mapped_column(ForeignKey('groups.id'), ForeignKey('groups.id'), nullable=False)
+    user_id: Mapped[Integer] = mapped_column(ForeignKey('users.id'), ForeignKey('users.id'), nullable=False)
     is_admin: Mapped[Boolean] = mapped_column(Boolean, default=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     group: Mapped["Group"] = relationship(back_populates="members")

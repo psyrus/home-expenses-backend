@@ -1,7 +1,6 @@
 import logging
 import os
 from datetime import datetime
-from typing import List
 
 import jwt
 from dotenv import load_dotenv
@@ -22,7 +21,7 @@ def get_session() -> Session:
     engine = get_engine()
     return Session(engine)
 
-def add_object_list(obj_list: List[Base]) -> dict | str:
+def add_object_list(obj_list: list[Base]) -> dict | str:
     with get_session() as s:
         try:
             s.add_all(obj_list)
