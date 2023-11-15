@@ -21,6 +21,19 @@ def get_session() -> Session:
     engine = get_engine()
     return Session(engine)
 
+def add_object_list(obj_list: list[Base]) -> dict | str:
+    with get_session() as s:
+        try:
+            s.add_all(obj_list)
+            s.commit()
+            json_parsed = get_json_array(obj_list)
+            logging.debug("Object added successfully: %s" % json_parsed)
+            return json_parsed
+        except Exception as e:
+            s.rollback()
+            logging.error(e)
+            return e.orig.args[0]
+
 def add_object(obj: Base) -> dict | str:
     with get_session() as s:
         try:
@@ -55,29 +68,34 @@ def is_jwt_valid(jwt_token: str, secret_key: str) -> bool:
             pass
     return is_valid
 
-def get_entry_by_id(class_type: Base, id: int, eager_load:bool = False) -> Base:
+def get_entry_by_id(class_type: Base, id: int, eager_load:bool = False, db_session: Session = None) -> Base:
     db_select = select(class_type).where(class_type.id == id)
     if eager_load:
         db_select = db_select.options(joinedload('*'))
-    with get_session() as s:
-        try:
-            db_entry = s.scalars(db_select).one()
-            logging.debug(db_entry)
-            logging.debug(db_entry.get_dict())
-        except:
-            return None
-            
-        return db_entry
+    should_close: bool = db_session == None
+    db_session = db_session or get_session()
+    try:
+        db_entry = db_session.scalars(db_select).one()
+        logging.debug(db_entry)
+        logging.debug(db_entry.get_dict())
+    except:
+        return None
+    if should_close:
+        db_session.close()
+    return db_entry
 
-def get_entries(class_type: Base, eager_load:bool = False) -> list[Base]:
+def get_entries(class_type: Base, eager_load:bool = False, db_session: Session = None) -> list[Base]:
     db_select = select(class_type)
+    should_close: bool = db_session == None
     if eager_load:
         db_select = db_select.options(joinedload('*'))
-    with get_session() as s:
-        db_entries = s.scalars(db_select).all()
-        logging.debug(get_json_array(db_entries))
-            
-        return db_entries
+    db_session = db_session or get_session()
+    db_entries = db_session.scalars(db_select).unique().all()
+    logging.debug(get_json_array(db_entries))
+
+    if should_close:
+        db_session.close()
+    return db_entries
 
 def get_json_single(db_object: Base) -> dict:
     return db_object.get_dict()
@@ -86,19 +104,28 @@ def get_json_array(db_object_list: list[Base]) -> dict:
     output = [i.get_dict() for i in db_object_list]
     return output
 
-def delete_object(obj: Base, session: Session = None) -> dict | str:
+def delete_object(obj: Base, session: Session = None) -> str:
     if obj == None:
         return "Entity in database did not exist"
-    with session or get_session() as s:
-        try:
-            s.delete(obj)
-            s.commit()
-            return "Object deleted successfully: %s" % obj.get_dict()
-        except Exception as e:
-            s.rollback()
-            logging.error(e)
-            return e.orig.args[0]
-        
+    should_close = False
+    if not session:
+        session = get_session()
+        should_close = True
+
+    try:
+        session.delete(obj)
+        session.commit()
+        msg: str = "Object deleted successfully: %s" % obj.get_dict()
+    except Exception as e:
+        session.rollback()
+        logging.error(e)
+        msg: str = e.orig.args[0]
+
+    if should_close:
+        session.close()
+
+    return msg
+
 def update_object_properties(obj: Base, patch: dict) -> None:
     obj_dict = obj.get_dict()
     for key in obj_dict.keys():

@@ -15,7 +15,7 @@ app.config['Access-Control-Allow-Origin'] = '*'
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from .models.models import User, AccessToken
-from .routes import expenses, users, categories
+from .routes import expenses, users, categories, groups
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -36,7 +36,7 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @app.before_request
 def check_valid_login():
-    if request.method == "OPTIONS" or getattr(app.view_functions[request.endpoint], 'is_public', False):
+    if not request.endpoint or request.method == "OPTIONS" or getattr(app.view_functions[request.endpoint], 'is_public', False):
         return
     encoded_jwt=request.headers.get("Authorization", "").split("Bearer ")[-1]
     if not db.is_jwt_valid(encoded_jwt, secret_key):
@@ -65,7 +65,7 @@ def reset_db():
     from .utils import db
     from .utils.instantiate_database import add_test_entries
     engine = db.get_engine()
-    Base.metadata.drop_all(bind=engine, checkfirst=False)
+    Base.metadata.drop_all(bind=engine, checkfirst=True)
     Base.metadata.create_all(bind=engine)
     logging.info("Populating database...")
     add_test_entries()

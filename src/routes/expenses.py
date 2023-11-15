@@ -1,5 +1,4 @@
 from flask import request
-from sqlalchemy import select
 
 from ..app import app
 from ..models.models import Expense
