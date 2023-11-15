@@ -41,12 +41,11 @@ def groupmember(group: int, user: int, admin: bool) -> dict:
         "is_admin": admin,
     }
 
-def create_groups(users: List[User]):
-    groups: List[Group] = []
+def create_groups(users: list[User]):
+    groups: list[Group] = []
     num_groups = len(users) // 3
 
-
-    for i in range(num_groups):
+    for _ in range(num_groups):
         groups.append(Group(**(group())))
         
     db.add_object_list(groups)
