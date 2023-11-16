@@ -1,3 +1,5 @@
+import jwt
+
 from flask import request
 from sqlalchemy import select
 
@@ -13,12 +15,18 @@ def get_user_helper(id:int) -> User:
         except:
             return None
 
-def get_user_helper_authid(oid):
+def get_user_helper_authid(oid: str) -> User | None:
     with db.get_session() as s:
         try:
             return s.scalars(select(User).where(User.auth_provider_id == oid)).one()
         except:
             return None
+
+def get_user_current() -> User:
+    encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
+    decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
+    user = get_user_helper_authid(decoded_jwt['sub'])
+    return user
 
 @app.route("/users", methods=["GET"])
 def get_users_api():
@@ -30,12 +38,8 @@ def get_user_api(id):
     return user.get_dict()
 
 @app.route("/user/me", methods=["GET"])
-def get_user_current():
-    import jwt
-    encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
-    decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=["HS256"], verify=True)
-    user = get_user_helper_authid(decoded_jwt['sub'])
-    return user.get_dict()
+def get_user_current_api():
+    return (get_user_current()).get_dict()
 
 @app.route("/user", methods=["POST"])
 def new_user_api():
