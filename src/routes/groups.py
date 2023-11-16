@@ -1,12 +1,13 @@
+from flask import abort, request
+
 from ..app import app
-from flask import request, abort
 from ..models.models import Group, GroupMember
-from ..utils.authorization import public_endpoint
 from ..utils import db
+from ..utils.authorization import public_endpoint
 from .users import get_user_current
+
 import logging
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 def isGroupMember(group: Group, user_id: int) -> bool:
     return any(m.user_id == user_id for m in group.members)
@@ -21,19 +22,22 @@ def isGroupExpensesResolved(group: Group) -> bool:
     # TODO: This will need to be fleshed out
     return True
 
-@public_endpoint
 @app.route("/groups", methods=["GET"])
 def get_groups_api():
-    # This should only return the groups relevant to the user
-    groups = db.get_entries(Group, eager_load=True)
-    return db.get_json_array(groups)
+    current_user = get_user_current()
+    with db.get_session() as session:
+        # Subquery to get distinct group_id values for a given user_id
+        subquery = session.query(GroupMember.group_id.distinct()).filter(GroupMember.user_id == current_user.id)
+        # Main query to select all columns from 'groups' where id is in the subquery
+        groups = session.query(Group).filter(Group.id.in_(subquery)).all()
+        return db.get_json_array(groups)
 
 @app.route("/group/<int:groupId>", methods=["GET"])
 def get_group_api(groupId: int):
     with db.get_session() as session:
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupMember(group, current_user['id']):
+        if not isGroupMember(group, current_user.id):
             abort(401)
         group_tmp = group.get_dict()
         group_tmp['members'] = db.get_json_array(group.members)
@@ -50,7 +54,7 @@ def delete_group_api(groupId: int):
     with db.get_session() as session:
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupAdmin(group, current_user['id']):
+        if not isGroupAdmin(group, current_user.id):
             abort(401)
         return db.delete_object(group, session)
 
@@ -59,7 +63,7 @@ def get_group_members_api(groupId: int):
     with db.get_session() as session:
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupMember(group, current_user['id']):
+        if not isGroupMember(group, current_user.id):
             abort(401)
         return db.get_json_array(group.members)
 
@@ -70,7 +74,7 @@ def new_group_member_api(groupId: int):
         new_group_member = GroupMember(**body)
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupAdmin(group, current_user['id']):
+        if not isGroupAdmin(group, current_user.id):
             abort(401)
         return db.add_object(new_group_member)
 
@@ -80,7 +84,7 @@ def update_group_member_api(groupId: int, memberId: int):
     with db.get_session() as session:
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupAdmin(group, current_user['id']):
+        if not isGroupAdmin(group, current_user.id):
             abort(401)
         group_member = db.get_entry_by_id(GroupMember, memberId, session)
         return db.update_object_properties(group_member, body)
@@ -90,7 +94,10 @@ def delete_group_member_api(groupId: int, memberId: int):
     with db.get_session() as session:
         current_user = get_user_current()
         group: Group = db.get_entry_by_id(Group, groupId, session)
-        if not isGroupAdmin(group, current_user['id']):
+        if not isGroupAdmin(group, current_user.id):
             abort(401)
-        group_member = db.get_entry_by_id(GroupMember, memberId, session)
+        group_member: GroupMember = db.get_entry_by_id(GroupMember, memberId, session)
+        if group_member.id == memberId:
+            logging.error("Cannot remove self from group")
+            abort(401)
         return db.delete_object(group_member)
