@@ -3,26 +3,27 @@
     "tasks": [
         {
             "label": "db-up",
-            "type": "docker-compose",
-            "dockerCompose": {
-                "up": {
-                    "detached": true,
-                    "build": true
-                },
-                "files": [
-                    "${workspaceFolder}/compose.yaml"
-                ]
-            }
+            "type": "shell",
+            "command": "docker-compose",
+            "args": [
+                "-f",
+                "${workspaceFolder}/compose.yaml",
+                "up",
+                "--detach",
+                "--build"
+            ],
+            "problemMatcher": []
         },
         {
             "label": "db-down",
-            "type": "docker-compose",
-            "dockerCompose": {
-                "down": {},
-                "files": [
-                    "${workspaceFolder}/compose.yaml"
-                ]
-            }
+            "type": "shell",
+            "command": "docker-compose",
+            "args": [
+                "-f",
+                "${workspaceFolder}/compose.yaml",
+                "down"
+            ],
+            "problemMatcher": []
         }
     ]
 }

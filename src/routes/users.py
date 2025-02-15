@@ -47,7 +47,6 @@ def new_user_api():
     new_user = User(**body)
     return db.add_object(new_user)
 
-
 @app.route("/user/<int:id>", methods=["DELETE"])
 def delete_user_api(id):
     user = get_user_helper(id)

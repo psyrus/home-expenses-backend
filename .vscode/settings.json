@@ -1,4 +1,5 @@
 {
     "files.insertFinalNewline": true,
     // "python.analysis.typeCheckingMode": "basic"
+    "workbench.colorTheme": "Monokai",
 }
